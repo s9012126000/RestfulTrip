@@ -1,0 +1,10 @@
+#directories
+test/
+
+
+#files
+test.*
+.DS_Store
+.env
+.idea
+*.csv
