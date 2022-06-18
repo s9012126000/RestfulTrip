@@ -1,50 +1,9 @@
-from selenium.webdriver.support import expected_conditions as ec
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import TimeoutException, WebDriverException, NoSuchElementException
-from selenium.webdriver import ActionChains
-from selenium.webdriver.common.by import By
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from fake_useragent import UserAgent
-from pymongo import MongoClient
-from dotenv import load_dotenv
-import time
-import os
+from personal_project.crawler.config.crawler_config import *
+from personal_project.crawler.config.mongo_config import *
 import threading
 import queue
-
-
-load_dotenv()
-client = MongoClient(f"{os.getenv('host')}:27017",
-                     username=os.getenv('mongouser'),
-                     password=os.getenv('password'),
-                     authMechanism=os.getenv('authMechanism')
-                     )
-
-user_agent = UserAgent().random
-options = Options()
-options.page_load_strategy = 'eager'
-chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument('--disable-extensions')
-chrome_options.add_argument('--profile-directory=Default')
-chrome_options.add_argument("--incognito")
-chrome_options.add_argument("--disable-plugins-discovery")
-chrome_options.add_argument("--start-maximized")
-chrome_options.add_argument("window-size=1440,900")
-chrome_options.add_argument(f'user-agent={user_agent}')
-
-
-def get_divisions():
-    driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
-    driver.delete_all_cookies()
-    URL_LOC = 'https://zh.wikipedia.org/wiki/中華民國臺灣地區鄉鎮市區列表'
-    driver.get(URL_LOC)
-    div = driver.find_elements(By.XPATH, "//div[@id='mw-content-text']/div[1]/table[7]/tbody/tr/td[1]/small")
-    divisions = [x.text for x in div]
-    divisions = set(divisions)
-    driver.quit()
-    return divisions
+import time
+import json
 
 
 class Worker(threading.Thread):
@@ -123,9 +82,10 @@ class Worker(threading.Thread):
 
 
 if __name__ == '__main__':
-    division = get_divisions()
+    with open('jsons/divisions.json') as f:
+        divisions = json.load(f)
     job_queue = queue.Queue()
-    for job_index in division:
+    for job_index in divisions:
         job_queue.put(job_index)
 
     workers = []
@@ -142,4 +102,3 @@ if __name__ == '__main__':
 
     for worker in workers:
         worker.join()
-
