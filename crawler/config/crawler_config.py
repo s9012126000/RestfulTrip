@@ -1,8 +1,10 @@
+from selenium.common.exceptions import TimeoutException, WebDriverException, NoSuchElementException, \
+    StaleElementReferenceException, ElementClickInterceptedException, InvalidArgumentException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as ec
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import TimeoutException, WebDriverException, NoSuchElementException
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium import webdriver
@@ -22,6 +24,7 @@ chrome_options.add_argument("--disable-plugins-discovery")
 chrome_options.add_argument("--start-maximized")
 chrome_options.add_argument("window-size=1440,900")
 chrome_options.add_argument(f'user-agent={user_agent}')
+chrome_options.add_argument("Zoom 60%")
 
 
 headers = {
