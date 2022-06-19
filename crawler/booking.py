@@ -110,8 +110,6 @@ def get_booking_hotels():
                     for i in range(5):
                         try:
                             print(f'attempt {i}')
-                            print(m)
-                            print(card)
                             time.sleep(10)
                             fetching()
                             break
@@ -122,8 +120,6 @@ def get_booking_hotels():
                                     lnk = card.find('a')['href']
                                     e.write('url:\n' + str(lnk) + '\n')
                                 print(f"lost data")
-                            pass
-                    pass
             offset += 25
             time.sleep(random.randint(1, 3))
         col.insert_many(hotel_ls, bypass_document_validation=True)

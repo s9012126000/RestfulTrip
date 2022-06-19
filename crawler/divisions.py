@@ -14,5 +14,6 @@ def get_divisions():
 
 
 divisions = get_divisions()
+divisions = [div.replace('臺', '台') if '臺' in div else div for div in divisions]
 with open('jsons/divisions.json', 'w') as f:
     json.dump(list(divisions), f)
