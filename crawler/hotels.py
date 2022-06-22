@@ -1,5 +1,5 @@
-from personal_project.crawler.config.crawler_config import *
-from personal_project.crawler.config.mongo_config import *
+from personal_project.config.mongo_config import *
+from personal_project.config.crawler_config import *
 import threading
 import queue
 import time

@@ -1,4 +1,4 @@
-from config.crawler_config import *
+from personal_project.config.crawler_config import *
 import json
 
 

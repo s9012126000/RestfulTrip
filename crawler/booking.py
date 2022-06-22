@@ -1,5 +1,5 @@
-from config.crawler_config import *
-from config.mongo_config import *
+from personal_project.config.mongo_config import *
+from personal_project.config.crawler_config import *
 from math import ceil
 
 import random
