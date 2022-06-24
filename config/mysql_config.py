@@ -1,23 +1,36 @@
 from pymysqlpool.pool import Pool
+from sqlalchemy import create_engine
 from dotenv import load_dotenv
 from pymysql import cursors
 import pymysql
 import os
 load_dotenv()
 
+sql_host = os.getenv('host')
+sql_user = os.getenv('user')
+sql_pw = os.getenv('passwd')
+sql_db = os.getenv('database')
 
 pool = Pool(
-    host=os.getenv('host'),
-    user=os.getenv('user'),
-    password=os.getenv('passwd'),
-    db=os.getenv('database'),
+    host=sql_host,
+    user=sql_user,
+    password=sql_pw,
+    db=sql_db,
     cursorclass=pymysql.cursors.DictCursor
 )
 pool.init()
 MyDb = pool.get_conn()
 
+engine = create_engine(
+    f"mysql+pymysql://{sql_user}:{sql_pw}@{sql_host}:3306/{sql_db}?charset=utf8",
+    max_overflow=0,
+    pool_size=5,
+    pool_timeout=30,
+    pool_recycle=-1
+)
 
-def sql_bulk(table, ls):
+
+def sql_strict_insert(table, ls):
     keys = list(ls[0].keys())
     columns = ', '.join(keys)
     placeholders = ', '.join(['%s'] * len(ls[0]))
@@ -27,3 +40,34 @@ def sql_bulk(table, ls):
     cursor.executemany(sql, vals)
     MyDb.commit()
 
+
+def hotels_to_sql(df):
+    ls = df.to_dict('records')
+    keys = list(ls[0].keys())
+    columns = ', '.join(keys)
+    placeholders = ', '.join(['%s'] * len(ls[0]))
+    vals = [tuple(val.values()) for val in ls]
+    MyDb.ping(reconnect=True)
+    cursor = MyDb.cursor()
+    sql = f"""
+    INSERT INTO hotels ({columns}) VALUES ({placeholders})
+    ON DUPLICATE KEY UPDATE 
+        name = VALUES (name), 
+        address = VALUES (address), 
+        des = VALUES (des), 
+        star = VALUES (star)
+    """
+    cursor.executemany(sql, vals)
+    MyDb.commit()
+
+
+def dt_to_sql(table, ls):
+    keys = list(ls[0].keys())
+    columns = ', '.join(keys)
+    placeholders = ', '.join(['%s'] * len(ls[0]))
+    vals = [tuple(val.values()) for val in ls]
+    MyDb.ping(reconnect=True)
+    cursor = MyDb.cursor()
+    sql = f"INSERT IGNORE INTO {table} ({columns}) VALUES ({placeholders})"
+    cursor.executemany(sql, vals)
+    MyDb.commit()
