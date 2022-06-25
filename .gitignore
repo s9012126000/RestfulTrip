@@ -1,6 +1,7 @@
 #directories
 test/
 __pycache__/
+logs/
 
 #files
 test.*
