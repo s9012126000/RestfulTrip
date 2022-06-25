@@ -90,8 +90,11 @@ class Worker(threading.Thread):
                 for i in range(5):
                     try:
                         print(f'attempt {i+1}')
-                        time.sleep(2)
+                        time.sleep(3)
                         fetching()
+                        break
+                    except TimeoutException:
+                        print(f"{uid} is empty at {date}")
                         break
                     except StaleElementReferenceException:
                         print(f'attempt {i + 1} fail')
@@ -105,7 +108,7 @@ class Worker(threading.Thread):
 if __name__ == '__main__':
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
-    cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 3 ORDER BY hotel_id')
+    cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 3 AND hotel_id > 16 ORDER BY hotel_id')
     urls = cursor.fetchall()
 
     job_queue = queue.Queue()
@@ -113,7 +116,7 @@ if __name__ == '__main__':
         job_queue.put(job)
 
     workers = []
-    worker_count = 4
+    worker_count = 5
     for i in range(worker_count):
         num = i + 1
         driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)

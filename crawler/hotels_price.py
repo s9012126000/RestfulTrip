@@ -91,7 +91,7 @@ class Worker(threading.Thread):
 if __name__ == '__main__':
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
-    cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 1 and hotel_id > 232')
+    cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 1 and hotel_id > 490')
     urls = cursor.fetchall()
 
     job_queue = queue.Queue()
@@ -99,7 +99,7 @@ if __name__ == '__main__':
         job_queue.put(job)
 
     workers = []
-    worker_count = 4
+    worker_count = 3
     for i in range(worker_count):
         num = i + 1
         driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
