@@ -38,7 +38,7 @@ class Worker(threading.Thread):
         self.get_hotels()
 
     def get_hotels(self):
-        col = client['personal_project']['agodacom']
+        col = client['personal_project']['agoda']
         while True:
             self.scroll_to_bottom()
             try:

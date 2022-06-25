@@ -17,7 +17,7 @@ class Worker(threading.Thread):
             self.hotelcom(job_queue.get())
 
     def hotelcom(self, div):
-        col = client['personal_project']['hotelcom']
+        col = client['personal_project']['hotels']
         URL = f'https://tw.hotels.com/Hotel-Search?destination={div}&startDate=2022-10-01&endDate=2022-10-02&rooms=1&adults=1'
         self.driver.get(URL)
         action = ActionChains(self.driver)
