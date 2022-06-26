@@ -56,6 +56,13 @@ class Worker(threading.Thread):
                     ec.presence_of_all_elements_located((By.XPATH, "//strong[@data-ppapi='room-price']"))
                 )
                 price = [int(x.text.replace(',', '')) for x in price]
+                if 0 in price:
+                    self.driver.refresh()
+                    time.sleep(3)
+                    price = wait.until(
+                        ec.presence_of_all_elements_located((By.XPATH, "//strong[@data-ppapi='room-price']"))
+                    )
+                    price = [int(x.text.replace(',', '')) for x in price]
                 room = wait.until(
                     ec.presence_of_all_elements_located((By.XPATH, "//div[@data-ppapi='max-occupancy']"))
                 )
