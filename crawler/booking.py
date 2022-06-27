@@ -34,7 +34,7 @@ def get_region_url():
 
 
 def get_booking_hotels():
-    col = client['personal_project']['bookingcom']
+    col = client['personal_project']['booking']
     with open('jsons/booking_regions_urls.json', 'r') as u:
         region_urls = json.load(u)
     for region in region_urls:

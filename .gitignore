@@ -1,6 +1,8 @@
 #directories
 test/
 __pycache__/
+imgs/
+logs/
 
 #files
 test.*
@@ -9,3 +11,4 @@ test.*
 .idea
 *.csv
 chromedriver
+*.jpg
