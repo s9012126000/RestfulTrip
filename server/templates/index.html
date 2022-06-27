@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>RestfulTrip</title>
+    <link href="./static/bootstrap.css" rel="stylesheet">
+  </head>
+  <body>
+
+    <div class="container mt-4 mb-3 ps-3" style="max-width:80%">
+      <a href="/">
+        <img src="./static/imgs/logo.png" style="width: 350px;">
+      </a>
+    </div>
+      <div>
+        <img src="./static/imgs/IMG_1637 2.JPG" style="max-width:100%">
+        <span style="position:absolute;top:30%;left:8%;width:90%">
+          <div class="container"  style="max-width:100%;">
+            <h1 class="text-white py-3" style="font-size:50px;padding-left:35px">為您的旅途</h1>
+            <h1 class="text-white py-3 pb-5" style="font-size:50px;padding-left:35px">尋找一個落腳處</h1>
+            <form method="get" action="/hotels">
+              <div class="row">
+              <div class="col-md-3 ps-5 pe-3 ms-0">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="floatingInputGrid" placeholder="你想去哪？" name="dest">
+                  <label >想要去哪？</label>
+                </div>
+              </div>
+              <div class="col-md-2 px-3">
+                <div class="form-floating">
+                  <input type="date" class="form-control" name="checkin">
+                  <label >入住日期</label>
+                </div>
+              </div>
+              <div class="col-md-2 px-3">
+                <div class="form-floating">
+                  <input type="date" class="form-control" name="checkout">
+                  <label >退房日期</label>
+                </div>
+              </div>
+              <div class="col-md-2 px-3">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="floatingInputGrid" placeholder="幾位入住？" name="person">
+                  <label>幾位入住</label>
+                </div>
+              </div>
+              <button class="btn btn-outline-light col-md-1 mx-5" style="width:150px;border-radius:23px;" type="submit">搜出好價</button>
+            </div>
+            </form>
+
+          </div>
+      </span>
+      </div>
+    <script src="./static/bootstrap.js"></script>
+  </body>
+</html>

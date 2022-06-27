@@ -6,136 +6,168 @@
     <title>RestfulTrip</title>
     <link href="./static/bootstrap.css" rel="stylesheet">
   </head>
-<body>
-
-  <div class="container my-4 mx-0 "><h1> Restful Trip</h1></div>
-<!--  <img src="./static/imgs/bg.jpg" class="w-100" style="height:300px; alt="">-->
-
-  <div class=" bg-blue p-2 m-0 w-100 text-white"></div>
-  <div class=" bg-success p-3 m-0 w-100 text-white bg-opacity-50" style="height:150px;">
-    <div class="container">
-      <div class="row ">
-        <h2>就此啟程</h2>
-        <div class="col-md-5 px-3">
-          <div class="form-floating">
-            <input type="text" class="form-control" id="floatingInputGrid" placeholder="你想去哪？">
+  <body>
+      <!-- title -->
+      <div class="container mt-4 mb-3 ps-3" style="max-width:80%">
+        <a href="/">
+          <img src="./static/imgs/logo.png" style="width: 350px;">
+        </a>
+      </div>
+      <!-- banner -->
+      <div>
+        <img src="./static/imgs/IMG_5280 3.JPG" style="max-width:100%;opacity:0.8;filter: blur(3px)">
+        <span style="position:absolute;top:28%;left:8%;width:90%">
+          <div class="container"  style="max-width:100%;">
+            <h1 class="text-white py-3" style="font-size:50px;padding-left:35px">就此啟程</h1>
+            <!-- form  -->
+            <form method="get" action="/hotels">
+              <div class="row">
+              <div class="col-md-3 ps-5 pe-3 ms-0">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="floatingInputGrid" placeholder="你想去哪？" name="dest" value="{{ user_send.dest}}">
+                  <label >想要去哪？</label>
+                </div>
+              </div>
+              <div class="col-md-2 px-3">
+                <div class="form-floating">
+                  <input type="date" class="form-control" name="checkin" value="{{ user_send.checkin }}">
+                  <label >入住日期</label>
+                </div>
+              </div>
+              <div class="col-md-2 px-3">
+                <div class="form-floating">
+                  <input type="date" class="form-control" name="checkout" value="{{ user_send.checkout }}">
+                  <label >退房日期</label>
+                </div>
+              </div>
+              <div class="col-md-2 px-3">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="floatingInputGrid" placeholder="幾位入住？" name="person" value="{{ user_send.person }}">
+                  <label>幾位入住</label>
+                </div>
+              </div>
+                <button class="btn btn-outline-light col-md-1 mx-5" style="width:150px;border-radius:23px;" type="submit">搜出好價</button>
+            </div>
+            </form>
           </div>
-        </div>
-        <div class="col-md-2 px-3">
-          <div class="form-floating">
-            <input type="date" class="form-control">
+      </span>
+      </div>
+      <!-- card -->
+      <div >
+        <div class="container  p-2" style="max-width:100%">
+          <div class="container" style="max-width:84%"><h3 class="px-4 my-3"> {{msg}} </h3></div>
+          {% for i in range(hotel_data|length) %}
+          <div class="container" id="card-content" style="max-width:84%">
+            <div class="card mb-12 mb-4 mx-4" style="max-width: 100%;height:250px ; border-radius:25px">
+              <div class="row">
+                <div class="col-md-3" style="width:20%; height:50%;">
+                  {% if image_data[hotel_data[i].id]|length == 1 %}
+                  <img src="{{ image_data[hotel_data[i].id][0] }}" class="img-fluid" alt="..." style="border-radius:23px; height:250px; width:100%">
+                  {% else %}
+                  <div id="{{'a'*(i+1)}}" class="carousel slide" data-bs-ride="false" data-bs-interval="false">
+                    <div class="carousel-indicators">
+                      <button type="button" data-bs-target="#{{'a'*(i+1)}}" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                      {% if image_data[hotel_data[i].id][1] %}
+                        <button type="button" data-bs-target="#{{'a'*(i+1)}}" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                      {% endif %}
+                      {% if image_data[hotel_data[i].id][2] %}
+                        <button type="button" data-bs-target="#{{'a'*(i+1)}}" data-bs-slide-to="1" aria-label="Slide 3"></button>
+                      {% endif %}
+                    </div>
+                    <div class="carousel-inner">
+                      <div class="carousel-item active">
+                        <img src="{{image_data[hotel_data[i].id][0]}}" class="d-block w-100" alt="..." style="border-radius:23px; height:250px; width:100%">
+                      </div>
+                      {% if image_data[hotel_data[i].id][1] %}
+                        <div class="carousel-item">
+                          <img src="{{image_data[hotel_data[i].id][1]}}" class="d-block w-100" alt="..." style="border-radius:23px; height:250px; width:100%">
+                        </div>
+                      {% endif %}
+                      {% if image_data[hotel_data[i].id][2] %}
+                        <div class="carousel-item">
+                          <img src="{{image_data[hotel_data[i].id][2]}}" class="d-block w-100" alt="..." style="border-radius:23px; height:250px; width:100%">
+                        </div>
+                      {% endif %}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#{{'a'*(i+1)}}" data-bs-slide="prev">
+                      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                      <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#{{'a'*(i+1)}}" data-bs-slide="next">
+                      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                      <span class="visually-hidden">Next</span>
+                    </button>
+                  </div>
+                  {% endif %}
+
+
+                </div>
+                <div class="col-md-7 ps-2" style="width:60%">
+                  <div class="card-body p-0" style="width:100%;margin-top:2%">
+                    <h4 class="card-title mb-1" style="color:#003060" >{{hotel_data[i].name}}</h4>
+                    <p class="card-text my-1">{{hotel_data[i].star}} 星級</p>
+                    <p class="card-text my-1">{{hotel_data[i].address}}</p>
+                    <p class="card-text my-1"><small class="text-muted" style="font-size:15px">{{hotel_data[i].des}}</small></p>
+                  </div>
+                </div>
+                <div class="col-md-3 px-3" style="width:20%;">
+                  <div class="card-body">
+                    {% if price[hotel_data[i].id]|length == 0 %}
+                    <h5 class="card-title pt-1" style="color:#FF8040">當日暫無價格</h5>
+                    {% else %}
+                    <h5 class="card-title pt-1">每晚平均：</h5>
+                      {% for p in price[hotel_data[i].id]%}
+                        {% if p == 1 %}
+                          <a href="{{ price[hotel_data[i].id][p][1] }}" target="_blank" style="text-decoration:none; color:#003060" >
+                            <img src="https://tw.hotels.com/_dms/header/logo.svg?locale=zh_TW&siteid=300000045&2" style="width:80px">
+                            <h4 class="card-text mb-2" >NT${{ price[hotel_data[i].id][p][0] }}</h4>
+                          </a>
+                        {% elif p == 2 %}
+                          <a href="{{ price[hotel_data[i].id][p][1] }}" target="_blank" style="text-decoration:none; color:#003060">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Booking.com_Logo.svg/320px-Booking.com_Logo.svg.png" style="width:80px">
+                            <h4 class="card-text mb-2">NT${{ price[hotel_data[i].id][p][0] }}</h4>
+                          </a>
+                        {% elif p == 3 %}
+                          <a href="{{ price[hotel_data[i].id][p][1] }}" target="_blank" style="text-decoration:none; color:#003060">
+                            <img src="https://cdn6.agoda.net/images/kite-js/logo/agoda/color-default.svg" style="width:50px">
+                            <h4 class="card-text mb-2">NT${{ price[hotel_data[i].id][p][0] }}</h4>
+                          </a>
+                        {% endif %}
+                      {% endfor %}
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
-        </div>
-        <div class="col-md-2 px-3">
-          <div class="form-floating">
-            <select class="form-select" id="floatingSelectGrid">
-              <option selected>成人</option>
-              <option value="1">One</option>
-              <option value="2">Two</option>
-              <option value="3">Three</option>
-            </select>
-            <label for="floatingSelectGrid">Works with selects</label>
-          </div>
-        </div>
-        <div class="col-md-2 px-3">
-          <div class="form-floating">
-            <select class="form-select" id="floatingSelectGrid">
-              <option selected>兒童</option>
-              <option value="1">One</option>
-              <option value="2">Two</option>
-              <option value="3">Three</option>
-            </select>
-            <label for="floatingSelectGrid">Works with selects</label>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <div class="container bg-success p-2   text-dark bg-opacity-10">
-  <div class="card mb-12 my-4 mx-4" style="max-width: 100%;height:250px; border-radius:25px">
-    <div class="row">
-      <div class="col-md-3">
-        <img src="{{ image }}" class="img-fluid" alt="..." style="border-radius:23px; height:250px;">
-      </div>
-      <div class="col-md-6">
-        <div class="card-body">
-          <h4 class="card-title">{{ name }}</h4>
-          <p class="card-text">{{ add }}</p>
-          <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+          {% endfor %}
         </div>
       </div>
-      <div class="col-md-2">
-        <div class="card-body">
-          <h5 class="card-title">Card title</h5>
-          <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
-        </div>
+      <!-- paging -->
+      <div class="d-flex justify-content-center mb-5">
+        {% if user_send.dest and user_send.checkin and user_send.checkout and user_send.person %}
+        <nav aria-label="Page navigation example">
+          <ul class="pagination">
+            {% if page|int == 0 %}
+              <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int}}">Previous</a></li>
+            {% else %}
+              <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int -1}}">Previous</a></li>
+            {% endif %}
+            {% if page|int -2 > 0 %}
+              <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int-2}}">{{page|int-2}}</a></li>
+            {% endif %}
+            {% if page|int -1 > 0 %}
+              <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int-1}}">{{page|int-1}}</a></li>
+            {% endif %}
+              <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int}}">{{page|int}}</a></li>
+              <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int+1}}">{{page|int+1}}</a></li>
+              <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int+2}}">{{page|int+2}}</a></li>
+            <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int +1}}">Next</a></li>
+          </ul>
+        </nav>
+        {% endif %}
       </div>
-    </div>
-  </div>
-
-  <div class="card mb-12 my-4 mx-4" style="max-width: 100%;height:250px; border-radius:25px">
-    <div class="row">
-      <div class="col-md-3 ">
-        <img src="..." class="img-fluid " alt="..." style="border-radius:23px">
-      </div>
-      <div class="col-md-6">
-        <div class="card-body">
-          <h4 class="card-title"></h4>
-          <p class="card-text"></p>
-          <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
-        </div>
-      </div>
-      <div class="col-md-2">
-        <div class="card-body">
-          <h5 class="card-title">Card title</h5>
-          <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="card mb-12 my-4 mx-4" style="max-width: 100%;height:250px; border-radius:25px">
-    <div class="row">
-      <div class="col-md-3 ">
-        <img src="..." class="img-fluid " alt="..." style="border-radius:23px">
-      </div>
-      <div class="col-md-6">
-        <div class="card-body">
-          <h4 class="card-title"></h4>
-          <p class="card-text"></p>
-          <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
-        </div>
-      </div>
-      <div class="col-md-2">
-        <div class="card-body">
-          <h5 class="card-title">Card title</h5>
-          <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="card mb-12 my-4 mx-4" style="max-width: 100%;height:250px; border-radius:25px">
-    <div class="row">
-      <div class="col-md-3 ">
-        <img src="..." class="img-fluid " alt="..." style="border-radius:23px">
-      </div>
-      <div class="col-md-6">
-        <div class="card-body">
-          <h4 class="card-title"></h4>
-          <p class="card-text"></p>
-          <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
-        </div>
-      </div>
-      <div class="col-md-2">
-        <div class="card-body">
-          <h5 class="card-title">Card title</h5>
-          <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-    <script src="./static/bootstrap.js"></script>
+  <script src="./static/bootstrap.js"></script>
   </body>
 </html>
