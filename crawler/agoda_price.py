@@ -1,13 +1,13 @@
-import time
-
 from personal_project.config.crawler_config import *
 from personal_project.config.mysql_config import *
 from pprint import pprint
 import datetime
 import threading
 import queue
+import time
 import re
-
+import os
+PATH = os.getcwd()
 
 def replace_all(text, dt):
     for i, j in dt.items():
@@ -46,7 +46,7 @@ class Worker(threading.Thread):
         url = link['url']
         price_ls = []
         for date in date_ls:
-            replaces = {'checkIn=2022-07-4': f'checkIn={date}'}
+            replaces = {'checkIn=2022-06-28': f'checkIn={date}'}
             url_new = replace_all(url, replaces)
     
             def fetching():
@@ -106,7 +106,8 @@ class Worker(threading.Thread):
                     except StaleElementReferenceException:
                         print(f'attempt {i + 1} fail')
                         if i == 4:
-                            with open('logs/agoda_lost_price.txt', 'a') as e:
+                            lost_price_path = os.path.join(PATH, 'logs/agoda_lost_price.txt')
+                            with open(lost_price_path, 'a') as e:
                                 e.write(url_new + '\n')
                             print(f"lost data")
         return price_ls

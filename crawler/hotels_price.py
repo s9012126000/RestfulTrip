@@ -58,8 +58,6 @@ class Worker(threading.Thread):
                 cards = wait.until(ec.presence_of_element_located((By.ID, "Offers")))
                 wait.until(ec.presence_of_all_elements_located((By.TAG_NAME, 'ul')))
                 wait.until(ec.presence_of_all_elements_located((By.XPATH, "//div[@data-stid='price-summary']")))
-                # room = cards.find_elements(By.CLASS_NAME, "uitk-heading-6")
-                # room = [x.text for x in room]
                 room = cards.find_elements(By.TAG_NAME, 'ul')
                 room = [int(re.search(r"最多可入住 (\d) 人", x.text).group(1)) for x in room]
 
