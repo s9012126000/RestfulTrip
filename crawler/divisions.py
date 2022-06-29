@@ -1,7 +1,5 @@
-from personal_project.config.crawler_config import *
+from config.crawler_config import *
 import json
-import os
-PATH = os.getcwd()
 
 
 def get_divisions():
@@ -15,8 +13,7 @@ def get_divisions():
     return divs
 
 
-filepath = os.path.join(PATH, 'jsons/divisions.json')
 divisions = get_divisions()
 divisions = [div.replace('臺', '台') if '臺' in div else div for div in divisions]
-with open(filepath, 'w') as f:
+with open('jsons/divisions.json', 'w') as f:
     json.dump(list(divisions), f)

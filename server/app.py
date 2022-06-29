@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request
-from personal_project.config.mysql_config import *
+from config.mysql_config import *
 from dotenv import load_dotenv
 import os
 import datetime

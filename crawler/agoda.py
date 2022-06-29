@@ -1,11 +1,9 @@
-from personal_project.config.mongo_config import *
-from personal_project.config.crawler_config import *
+from config.mongo_config import *
+from config.crawler_config import *
 import threading
 import queue
 import time
 import json
-import os
-PATH = os.getcwd()
 
 
 class Worker(threading.Thread):
@@ -118,8 +116,7 @@ class Worker(threading.Thread):
                         except StaleElementReferenceException:
                             print(f'attempt {j} fail')
                             if j == 4:
-                                lost_data_path = os.path.join(PATH, 'logs/agoda_lost_data.txt')
-                                with open(lost_data_path, 'a') as e:
+                                with open('logs/agoda_lost_data.txt', 'a') as e:
                                     lnk = self.driver.current_url
                                     e.write(lnk)
                                 print(f"lost data")
@@ -144,7 +141,6 @@ class Worker(threading.Thread):
 
 
 if __name__ == '__main__':
-    div_path = os.path.join(PATH, 'jsons/divisions.json')
     with open('jsons/divisions.json') as d:
         divisions = json.load(d)
     ext = ['花蓮市', '台東市', '宜蘭市', '台南縣', '墾丁']

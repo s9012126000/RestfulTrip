@@ -1,9 +1,7 @@
-from personal_project.config.mongo_config import *
-from personal_project.config.crawler_config import *
+from config.mongo_config import *
+from config.crawler_config import *
 import time
 import random
-import os
-PATH = os.getcwd()
 
 
 def fetching(link):
@@ -51,8 +49,7 @@ def re_crawl_data(url_ls):
                 except AttributeError:
                     print(f'attempt {i} fail')
                     if i == 4:
-                        lost_data1_path = os.path.join(PATH, 'logs/booking_lost_data_re.txt')
-                        with open(lost_data1_path, 'a') as e:
+                        with open('logs/booking_lost_data_re.txt', 'a') as e:
                             e.write(url)
                         print(f"lost data")
                     pass
@@ -63,13 +60,12 @@ if __name__ == '__main__':
     hotel_ls = []
     col = client['personal_project']['booking']
     db_count = col.estimated_document_count()
-    lost_data_path = os.path.join(PATH, 'logs/booking_lost_data.txt')
-    with open(lost_data_path, 'r') as f:
+    with open('logs/booking_lost_data.txt', 'r') as f:
         remain_ls = f.read().replace('\n', '').split('url:')
         remain_ls.pop(0)
     re_crawl_data(remain_ls)
     col.insert_many(hotel_ls, bypass_document_validation=True)
     new_count = col.estimated_document_count()
     if hotel_ls and (new_count-db_count) == len(remain_ls):
-        with open(lost_data_path, 'w') as f:
+        with open('logs/booking_lost_data.txt', 'w') as f:
             f.write('')

@@ -1,5 +1,5 @@
-from personal_project.config.crawler_config import *
-from personal_project.config.mysql_config import *
+from config.crawler_config import *
+from config.mysql_config import *
 from pprint import pprint
 import datetime
 import threading

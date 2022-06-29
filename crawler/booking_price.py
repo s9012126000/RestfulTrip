@@ -1,14 +1,11 @@
-from personal_project.config.crawler_config import *
-from personal_project.config.mysql_config import *
-from urllib.parse import quote
+from config.crawler_config import *
+from config.mysql_config import *
 from pprint import pprint
 import datetime
 import threading
 import queue
 import time
 import re
-import os
-PATH = os.getcwd()
 
 
 def get_thirty_dates():
@@ -77,8 +74,7 @@ def get_booking_price(link):
                 except AttributeError:
                     print(f'attempt {i+1} fail')
                     if i == 4:
-                        lost_price_path = os.path.join(PATH, 'logs/booking_lost_price.txt')
-                        with open(lost_price_path, 'a') as e:
+                        with open('logs/booking_lost_price.txt', 'a') as e:
                             e.write(url_new + '\n')
                         print(f"lost data")
     return price_ls

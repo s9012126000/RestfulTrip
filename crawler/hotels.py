@@ -1,11 +1,9 @@
-from personal_project.config.mongo_config import *
-from personal_project.config.crawler_config import *
+from config.mongo_config import *
+from config.crawler_config import *
 import threading
 import queue
 import time
 import json
-import os
-PATH = os.getcwd()
 
 
 class Worker(threading.Thread):
@@ -35,7 +33,8 @@ class Worker(threading.Thread):
                 last_len = check
             elif check == last_len:
                 break
-        cards = self.driver.find_elements(By.XPATH, "//section[@class='results']/ol/li/div/a[@data-stid='open-hotel-information']")
+        cards = self.driver.find_elements(
+            By.XPATH, "//section[@class='results']/ol/li/div/a[@data-stid='open-hotel-information']")
         print('scan_done')
         hotel_ls = []
         for c in cards:
@@ -54,45 +53,40 @@ class Worker(threading.Thread):
 
     def fetch(self, c):
         c.click()
-        if len(self.driver.window_handles) > 1:
-            self.driver.switch_to.window(self.driver.window_handles[1])
-            detail_elm = WebDriverWait(self.driver, 20).until(
-                ec.presence_of_element_located((By.XPATH, "//div[@data-stid='content-hotel-title']"))
-            )
-            detail = detail_elm.text
-            url = self.driver.current_url
-            try:
-                rating = self.driver.find_element(By.XPATH, "//div[@itemprop='aggregateRating']").text
-            except NoSuchElementException:
-                rating = 'non-provided'
-            try:
-                address = self.driver.find_element(By.XPATH, "//div[@itemprop='address']").text
-            except NoSuchElementException:
-                address = 'non-provided'
-            try:
-                img = self.driver.find_element(By.XPATH, "//div[@id='Overview']").\
-                                  find_element(By.TAG_NAME, 'img').get_attribute('src')
-            except NoSuchElementException:
-                img = 'non-provided'
-            pack = {
-                'detail': detail,
-                'url': url,
-                'rating': rating,
-                'address': address,
-                'img': img
-            }
-            print(pack)
-            self.driver.close()
-            self.driver.switch_to.window(self.driver.window_handles[0])
-            time.sleep(0.5)
-            return pack
-        else:
-            return 'invalid div'
+        self.driver.switch_to.window(self.driver.window_handles[1])
+        detail_elm = WebDriverWait(self.driver, 20).until(
+            ec.presence_of_element_located((By.XPATH, "//div[@data-stid='content-hotel-title']"))
+        )
+        detail = detail_elm.text
+        url = self.driver.current_url
+        try:
+            rating = self.driver.find_element(By.XPATH, "//div[@itemprop='aggregateRating']").text
+        except NoSuchElementException:
+            rating = 'non-provided'
+        try:
+            address = self.driver.find_element(By.XPATH, "//div[@itemprop='address']").text
+        except NoSuchElementException:
+            address = 'non-provided'
+        try:
+            img = self.driver.find_element(By.XPATH, "//div[@id='Overview']").\
+                              find_element(By.TAG_NAME, 'img').get_attribute('src')
+        except NoSuchElementException:
+            img = 'non-provided'
+        pack = {
+            'detail': detail,
+            'url': url,
+            'rating': rating,
+            'address': address,
+            'img': img
+        }
+        print(f"{detail} success")
+        self.driver.close()
+        self.driver.switch_to.window(self.driver.window_handles[0])
+        return pack
 
 
 if __name__ == '__main__':
-    div_path = os.path.join(PATH, 'jsons/divisions.json')
-    with open(div_path) as f:
+    with open('jsons/divisions.json') as f:
         divisions = json.load(f)
     job_queue = queue.Queue()
     for job_index in divisions:

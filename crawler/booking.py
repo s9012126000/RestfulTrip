@@ -1,17 +1,14 @@
-from personal_project.config.mongo_config import *
-from personal_project.config.crawler_config import *
+from config.mongo_config import *
+from config.crawler_config import *
 from math import ceil
 
 import random
 import json
 import time
-import os
-PATH = os.getcwd()
 
 
 def get_region_url():
-    div_path = os.path.join(PATH, 'jsons/divisions.json')
-    with open(div_path) as d:
+    with open('jsons/divisions.json') as d:
         divisions = json.load(d)
     ext = ['花蓮市', '台東市', '宜蘭市', '台南縣']
     divisions.extend(ext)
@@ -38,8 +35,7 @@ def get_region_url():
 
 def get_booking_hotels():
     col = client['personal_project']['booking']
-    url_path = os.path.join(PATH, 'jsons/booking_regions_urls.json')
-    with open(url_path, 'r') as u:
+    with open('jsons/booking_regions_urls.json', 'r') as u:
         region_urls = json.load(u)
     for region in region_urls:
         hotel_num = region[1]
@@ -73,8 +69,7 @@ def get_booking_hotels():
                         if i == 4:
                             tag = 'fail'
                 if tag == 'fail':
-                    lost_card_path = os.path.join(PATH, 'logs/lost_card.txt')
-                    with open(lost_card_path, 'a') as e:
+                    with open('logs/lost_card.txt', 'a') as e:
                         url = url + f'&offset={offset}'
                         e.write('url:\n' + url + '\n')
                     print(f"lost card")
@@ -121,8 +116,7 @@ def get_booking_hotels():
                         except AttributeError:
                             print(f'attempt {i} fail')
                             if i == 4:
-                                lost_data_path = os.path.join(PATH, 'logs/booking_lost_data.txt')
-                                with open(lost_data_path, 'a') as e:
+                                with open('logs/booking_lost_data.txt', 'a') as e:
                                     lnk = card.find('a')['href']
                                     e.write('url:\n' + str(lnk) + '\n')
                                 print(f"lost data")
@@ -134,8 +128,7 @@ def get_booking_hotels():
 
 if __name__ == '__main__':
     # booking_urls = get_region_url()
-    # url_path = os.path.join(PATH, 'jsons/booking_regions_urls.json')
-    # with open(url_path, 'w') as f:
+    # with open('jsons/booking_regions_urls.json', 'w') as f:
     #     json.dump(booking_urls, f)
     get_booking_hotels()
 
