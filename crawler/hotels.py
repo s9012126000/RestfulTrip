@@ -19,15 +19,32 @@ class Worker(threading.Thread):
     def hotelcom(self, div):
         col = client['personal_project']['hotels']
         URL = f'https://tw.hotels.com/Hotel-Search?destination={div}&startDate=2022-10-01&endDate=2022-10-02&rooms=1&adults=1'
+        print(URL)
+        
         self.driver.get(URL)
+        headers = driver.execute_script(
+            "var req = new XMLHttpRequest();req.open('GET', document.location, false);req.send(null);return req.getAllResponseHeaders()")
+        headers = headers.splitlines()
+        print(headers)
+        driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+            "source": """
+                Object.defineProperty(navigator, 'webdriver', {
+                    get: () => undefined
+                })
+            """
+        })
         last_len = 0
         while True:
+            cards = self.driver.find_element(By.TAG_NAME, 'html').text
+            print(cards)
             self.driver.execute_script("window.scrollTo(0, 50000)")
-            elm = WebDriverWait(self.driver, 10).until(
+            time.sleep(2)
+            elm = WebDriverWait(self.driver, 20).until(
                 ec.element_to_be_clickable((By.XPATH, "//button[@data-stid='show-more-results']"))
             )
+            print('break through')
             elm.click()
-            time.sleep(0.5)
+            time.sleep(1)
             check = len(self.driver.find_elements(By.XPATH, "//section[@class='results']/ol/li"))
             if check > last_len:
                 last_len = check
@@ -93,7 +110,7 @@ if __name__ == '__main__':
         job_queue.put(job_index)
 
     workers = []
-    worker_count = 2
+    worker_count = 1
     for i in range(worker_count):
         num = i+1
         driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
@@ -102,7 +119,7 @@ if __name__ == '__main__':
         workers.append(worker)
 
     for worker in workers:
-        worker.start()
+        worker.run()
 
     for worker in workers:
         worker.join()

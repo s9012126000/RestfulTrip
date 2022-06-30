@@ -19,6 +19,7 @@ class Worker(threading.Thread):
     def get_region_hotels(self, div):
         url = 'https://www.agoda.com/zh-tw/'
         self.driver.get(url)
+        self.driver.maximize_window()
         WebDriverWait(self.driver, 10).until(
             ec.element_to_be_clickable((By.XPATH, "//input[@data-selenium='textInput']"))
         ).click()
@@ -28,6 +29,8 @@ class Worker(threading.Thread):
         ).click()
         time.sleep(1)
         self.driver.find_element(By.XPATH, "//li[@data-selenium='allRoomsTab']").click()
+        time.sleep(1)
+        print('form filled')
         self.driver.find_element(By.XPATH, "//button[@data-selenium='searchButton']").click()
         try:
             WebDriverWait(self.driver, 10).until(
@@ -149,9 +152,10 @@ if __name__ == '__main__':
     for job_index in divisions:
         job_queue.put(job_index)
     workers = []
-    worker_count = 2
+    worker_count = 1
     for i in range(worker_count):
         num = i+1
+        PROXY="220.132.0.156:8787"
         driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
         driver.delete_all_cookies()
         worker = Worker(num, driver)

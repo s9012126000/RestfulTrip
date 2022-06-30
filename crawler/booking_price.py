@@ -37,17 +37,23 @@ def get_booking_price(link):
         url_new = replace_all(url, replaces)
 
         def fetching():
+            proxies={'http': "220.132.0.156:8787",
+                    'https': "220.132.0.156:8787"}
             headers['User-Agent'] = UserAgent().random
-            hotel_req = requests.get(url_new, headers=headers, allow_redirects=False)
+            hotel_req = requests.get(url_new, headers=headers, allow_redirects=False, proxies=proxies)
             hotel_soup = BeautifulSoup(hotel_req.text, 'html.parser')
+            print(url_new)
             room = hotel_soup.find(id='hprt-table').findAll('span', attrs={"class": "bui-u-sr-only"})
             room = [x.text.replace(',', '') for x in room]
             room = ''.join(room)
+            print(room)
             price = [x for x in re.findall(r"目前價格\nTWD\xa0\d+|房價\nTWD\xa0\d+", room)]
             price = [int(re.search(r"\xa0(\d+)", x).group(1)) for x in price]
             room_type = re.findall(r"—\d|最多人數: \d", room)
             room_type = [int(re.search(r"\d", x).group()) for x in room_type]
             price_dict = {}
+            print(room_type, 'aaa')
+            print(price, 'aaa')
             for i in range(len(room_type)):
                 try:
                     if price_dict[room_type[i]] > price[i]:
@@ -108,7 +114,7 @@ if __name__ == '__main__':
         job_queue.put(job)
 
     workers = []
-    worker_count = 8
+    worker_count = 1
     for i in range(worker_count):
         num = i + 1
         worker = Worker(num)

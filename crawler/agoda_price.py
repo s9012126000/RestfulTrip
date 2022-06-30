@@ -47,6 +47,7 @@ class Worker(threading.Thread):
         for date in date_ls:
             replaces = {'checkIn=2022-06-28': f'checkIn={date}'}
             url_new = replace_all(url, replaces)
+            print(url_new)
     
             def fetching():
                 self.driver.get(url)
@@ -54,6 +55,8 @@ class Worker(threading.Thread):
                 price = wait.until(
                     ec.presence_of_all_elements_located((By.XPATH, "//strong[@data-ppapi='room-price']"))
                 )
+                a = self.driver.find_element(By.TAG_NAME, 'html').text
+                print(a)
                 price = [int(x.text.replace(',', '')) for x in price]
                 if 0 in price:
                     self.driver.refresh()
@@ -122,10 +125,16 @@ if __name__ == '__main__':
         job_queue.put(job)
 
     workers = []
-    worker_count = 5
+    worker_count = 1
     for i in range(worker_count):
         num = i + 1
+        #220.132.0.156:8787
+        PROXY="220.132.0.156:8787"
+        chrome_options.add_argument(f"--proxy-server={PROXY}")
         driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
+        driver.get("http://httpbin.org/ip")
+        print(driver.page_source)
+        # driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
         driver.delete_all_cookies()
         worker = Worker(num, driver)
         workers.append(worker)

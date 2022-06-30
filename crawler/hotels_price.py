@@ -55,6 +55,8 @@ class Worker(threading.Thread):
             self.driver.execute_script("window.scrollTo(0, 800)")
             wait = WebDriverWait(self.driver, 3)
             try:
+                a = self.driver.find_element(By.TAG_NAME, 'html').text
+                print(a)
                 cards = wait.until(ec.presence_of_element_located((By.ID, "Offers")))
                 wait.until(ec.presence_of_all_elements_located((By.TAG_NAME, 'ul')))
                 wait.until(ec.presence_of_all_elements_located((By.XPATH, "//div[@data-stid='price-summary']")))
@@ -97,7 +99,7 @@ if __name__ == '__main__':
         job_queue.put(job)
 
     workers = []
-    worker_count = 3
+    worker_count = 1
     for i in range(worker_count):
         num = i + 1
         driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
