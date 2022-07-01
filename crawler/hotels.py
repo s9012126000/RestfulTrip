@@ -19,11 +19,7 @@ class Worker(threading.Thread):
     def hotelcom(self, div):
         col = client['personal_project']['hotels']
         URL = f'https://tw.hotels.com/Hotel-Search?destination={div}&startDate=2022-10-01&endDate=2022-10-02&rooms=1&adults=1'
-        print(URL)
         self.driver.get(URL)
-        headers = driver.execute_script(
-            "var req = new XMLHttpRequest();req.open('GET', document.location, false);req.send(null);return req.getAllResponseHeaders()")
-        headers = headers.splitlines()
         last_len = 0
         while True:
             self.driver.execute_script("window.scrollTo(0, 50000)")
