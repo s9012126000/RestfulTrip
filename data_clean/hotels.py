@@ -1,5 +1,5 @@
-from personal_project.config.mongo_config import *
-from personal_project.config.mysql_config import *
+from config.mongo_config import *
+from config.mysql_config import *
 from abc import ABC, abstractmethod
 from difflib import SequenceMatcher
 
