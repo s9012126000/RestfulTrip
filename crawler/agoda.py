@@ -155,8 +155,7 @@ if __name__ == '__main__':
     worker_count = 1
     for i in range(worker_count):
         num = i+1
-        PROXY="220.132.0.156:8787"
-        driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
+        driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
         driver.delete_all_cookies()
         worker = Worker(num, driver)
         workers.append(worker)

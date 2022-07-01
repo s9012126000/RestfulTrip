@@ -20,23 +20,12 @@ class Worker(threading.Thread):
         col = client['personal_project']['hotels']
         URL = f'https://tw.hotels.com/Hotel-Search?destination={div}&startDate=2022-10-01&endDate=2022-10-02&rooms=1&adults=1'
         print(URL)
-        
         self.driver.get(URL)
         headers = driver.execute_script(
             "var req = new XMLHttpRequest();req.open('GET', document.location, false);req.send(null);return req.getAllResponseHeaders()")
         headers = headers.splitlines()
-        print(headers)
-        driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
-            "source": """
-                Object.defineProperty(navigator, 'webdriver', {
-                    get: () => undefined
-                })
-            """
-        })
         last_len = 0
         while True:
-            cards = self.driver.find_element(By.TAG_NAME, 'html').text
-            print(cards)
             self.driver.execute_script("window.scrollTo(0, 50000)")
             time.sleep(2)
             elm = WebDriverWait(self.driver, 20).until(
@@ -113,8 +102,15 @@ if __name__ == '__main__':
     worker_count = 1
     for i in range(worker_count):
         num = i+1
-        driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
+        driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
         driver.delete_all_cookies()
+        driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+            "source": """
+                Object.defineProperty(navigator, 'webdriver', {
+                    get: () => undefined
+                })
+            """
+        })
         worker = Worker(num, driver)
         workers.append(worker)
 

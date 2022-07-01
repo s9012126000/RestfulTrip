@@ -50,13 +50,11 @@ class Worker(threading.Thread):
             print(url_new)
     
             def fetching():
-                self.driver.get(url)
-                wait = WebDriverWait(self.driver, 3)
+                self.driver.get(url_new)
+                wait = WebDriverWait(self.driver, 5)
                 price = wait.until(
                     ec.presence_of_all_elements_located((By.XPATH, "//strong[@data-ppapi='room-price']"))
                 )
-                a = self.driver.find_element(By.TAG_NAME, 'html').text
-                print(a)
                 price = [int(x.text.replace(',', '')) for x in price]
                 if 0 in price:
                     self.driver.refresh()
@@ -128,13 +126,7 @@ if __name__ == '__main__':
     worker_count = 1
     for i in range(worker_count):
         num = i + 1
-        #220.132.0.156:8787
-        PROXY="220.132.0.156:8787"
-        chrome_options.add_argument(f"--proxy-server={PROXY}")
-        driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
-        driver.get("http://httpbin.org/ip")
-        print(driver.page_source)
-        # driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
+        driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
         driver.delete_all_cookies()
         worker = Worker(num, driver)
         workers.append(worker)
