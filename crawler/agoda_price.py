@@ -1,11 +1,10 @@
-import time
-
-from personal_project.config.crawler_config import *
-from personal_project.config.mysql_config import *
+from config.crawler_config import *
+from config.mysql_config import *
 from pprint import pprint
 import datetime
 import threading
 import queue
+import time
 import re
 
 
@@ -46,12 +45,13 @@ class Worker(threading.Thread):
         url = link['url']
         price_ls = []
         for date in date_ls:
-            replaces = {'checkIn=2022-07-4': f'checkIn={date}'}
+            replaces = {'checkIn=2022-06-28': f'checkIn={date}'}
             url_new = replace_all(url, replaces)
+            print(url_new)
     
             def fetching():
-                self.driver.get(url)
-                wait = WebDriverWait(self.driver, 3)
+                self.driver.get(url_new)
+                wait = WebDriverWait(self.driver, 5)
                 price = wait.until(
                     ec.presence_of_all_elements_located((By.XPATH, "//strong[@data-ppapi='room-price']"))
                 )
@@ -123,10 +123,10 @@ if __name__ == '__main__':
         job_queue.put(job)
 
     workers = []
-    worker_count = 5
+    worker_count = 1
     for i in range(worker_count):
         num = i + 1
-        driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
+        driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
         driver.delete_all_cookies()
         worker = Worker(num, driver)
         workers.append(worker)

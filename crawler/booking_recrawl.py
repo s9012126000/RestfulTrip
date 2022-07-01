@@ -1,5 +1,5 @@
-from personal_project.config.mongo_config import *
-from personal_project.config.crawler_config import *
+from config.mongo_config import *
+from config.crawler_config import *
 import time
 import random
 
@@ -58,7 +58,7 @@ def re_crawl_data(url_ls):
 
 if __name__ == '__main__':
     hotel_ls = []
-    col = client['personal_project']['bookingcom']
+    col = client['personal_project']['booking']
     db_count = col.estimated_document_count()
     with open('logs/booking_lost_data.txt', 'r') as f:
         remain_ls = f.read().replace('\n', '').split('url:')

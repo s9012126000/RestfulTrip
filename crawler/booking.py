@@ -1,5 +1,5 @@
-from personal_project.config.mongo_config import *
-from personal_project.config.crawler_config import *
+from config.mongo_config import *
+from config.crawler_config import *
 from math import ceil
 
 import random
@@ -127,7 +127,6 @@ def get_booking_hotels():
 
 
 if __name__ == '__main__':
-    # should update every day
     # booking_urls = get_region_url()
     # with open('jsons/booking_regions_urls.json', 'w') as f:
     #     json.dump(booking_urls, f)

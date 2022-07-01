@@ -1,11 +1,9 @@
-from flask import Flask, render_template, request, redirect, send_from_directory
-from personal_project.config.mysql_config import *
+from flask import Flask, render_template, request
+from config.mysql_config import *
 from dotenv import load_dotenv
 import os
 import datetime
-import time
-import json
-from pprint import pprint
+
 
 load_dotenv()
 app = Flask(__name__)
@@ -41,8 +39,13 @@ def hotels():
     }
     if page is None:
         page = 1
-    if count and checkout >= checkin and dest and person:
-        cursor.execute(f"SELECT * FROM hotels WHERE address like '%{dest}%' ORDER BY id LIMIT {(int(page)-1)*15},15")
+    try:
+        person = int(person)
+    except ValueError:
+        person = 'wrong'
+    if count and checkout >= checkin and dest and person != 'wrong':
+        cursor.execute(
+            f"SELECT * FROM hotels WHERE address like '%{dest}%' ORDER BY id LIMIT {(int(page) - 1) * 15},15")
         hotel_data = cursor.fetchall()
         MyDb.commit()
         hid = [x['id'] for x in hotel_data]
@@ -56,10 +59,6 @@ def hotels():
             except KeyError:
                 image_dt[img['hotel_id']] = []
                 image_dt[img['hotel_id']].append(img['image'])
-        # image_data = {
-        #     x['hotel_id']: x['image']
-        #     for x in image_data
-        # }
         checkout = datetime.datetime.strptime(checkout, "%Y-%m-%d")
         checkout = (checkout - datetime.timedelta(days=1)).date().isoformat()
         if int(person) < 5:
@@ -81,7 +80,20 @@ def hotels():
         )
         price = cursor.fetchall()
         price_sum = {}
+        checkout = (datetime.datetime.strptime(checkout, '%Y-%m-%d').date()
+                    + datetime.timedelta(days=1)).isoformat()
         for p in price:
+            if p['resource'] == 1:
+                p['url'] = p['url'].replace('chkin=2022-10-01', f'chkin={checkin}') \
+                    .replace('chkout=2022-10-02', f'chkout={checkout}')
+            elif p['resource'] == 2:
+                p['url'] = p['url'].replace('checkin=2022-06-18', f'checkin={checkin}') \
+                    .replace('checkout=2022-06-19', f'checkout={checkout}')
+            else:
+                day_delta = (datetime.datetime.strptime(checkout, '%Y-%m-%d').date() -
+                             datetime.datetime.strptime(checkin, '%Y-%m-%d').date()).days
+                p['url'] = p['url'].replace('checkIn=2022-06-28', f'checkIn={checkin}') \
+                    .replace('los=1', f'los={day_delta}')
             try:
                 price_sum[p['id']]['price'] += p['price']
                 price_sum[p['id']]['count'] += 1
@@ -91,10 +103,10 @@ def hotels():
         price_dt = {}
         for p in price_sum.values():
             try:
-                price_dt[p['hotel_id']][p['resource']] = (format(int(p['price']/p['count']), ','), p['url'])
+                price_dt[p['hotel_id']][p['resource']] = (format(int(p['price'] / p['count']), ','), p['url'])
             except KeyError:
                 price_dt[p['hotel_id']] = {}
-                price_dt[p['hotel_id']][p['resource']] = (format(int(p['price']/p['count']), ','), p['url'])
+                price_dt[p['hotel_id']][p['resource']] = (format(int(p['price'] / p['count']), ','), p['url'])
     else:
         hotel_data = ''
         image_dt = ''
@@ -109,9 +121,10 @@ def hotels():
             msg = "請您輸入有效日期"
         elif person == '':
             msg = "請您輸入人數"
+        elif type(person) is not int:
+            msg = "請您輸入有效人數"
         else:
             msg = f"抱歉找不到 '{dest}'"
-    pprint(image_dt)
     return render_template('hotel.html',
                            hotel_data=hotel_data,
                            image_data=image_dt,

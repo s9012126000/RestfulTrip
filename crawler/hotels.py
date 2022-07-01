@@ -1,5 +1,5 @@
-from personal_project.config.mongo_config import *
-from personal_project.config.crawler_config import *
+from config.mongo_config import *
+from config.crawler_config import *
 import threading
 import queue
 import time
@@ -19,20 +19,28 @@ class Worker(threading.Thread):
     def hotelcom(self, div):
         col = client['personal_project']['hotels']
         URL = f'https://tw.hotels.com/Hotel-Search?destination={div}&startDate=2022-10-01&endDate=2022-10-02&rooms=1&adults=1'
+        print(URL)
         self.driver.get(URL)
-        action = ActionChains(self.driver)
-        foot = self.driver.find_element(By.TAG_NAME, "footer")
+        headers = driver.execute_script(
+            "var req = new XMLHttpRequest();req.open('GET', document.location, false);req.send(null);return req.getAllResponseHeaders()")
+        headers = headers.splitlines()
+        last_len = 0
         while True:
-            try:
-                action.move_to_element(foot).perform()
-                elm = WebDriverWait(self.driver, 15).until(
-                    ec.presence_of_element_located((By.XPATH, "//button[@data-stid='show-more-results']"))
-                )
-                elm.click()
-                time.sleep(0.5)
-            except TimeoutException:
-                cards = self.driver.find_elements(By.XPATH, "//section[@class='results']/ol/li[@data-stid='property-listing']")
+            self.driver.execute_script("window.scrollTo(0, 50000)")
+            time.sleep(2)
+            elm = WebDriverWait(self.driver, 20).until(
+                ec.element_to_be_clickable((By.XPATH, "//button[@data-stid='show-more-results']"))
+            )
+            print('break through')
+            elm.click()
+            time.sleep(1)
+            check = len(self.driver.find_elements(By.XPATH, "//section[@class='results']/ol/li"))
+            if check > last_len:
+                last_len = check
+            elif check == last_len:
                 break
+        cards = self.driver.find_elements(
+            By.XPATH, "//section[@class='results']/ol/li/div/a[@data-stid='open-hotel-information']")
         print('scan_done')
         hotel_ls = []
         for c in cards:
@@ -44,6 +52,7 @@ class Worker(threading.Thread):
                 self.driver.switch_to.window(self.driver.window_handles[0])
                 driver.refresh()
                 pack = self.fetch(c)
+
             hotel_ls.append(pack)
         col.insert_many(hotel_ls, bypass_document_validation=True)
         print(f'{div}: done at {time.perf_counter()}')
@@ -76,6 +85,7 @@ class Worker(threading.Thread):
             'address': address,
             'img': img
         }
+        print(f"{detail} success")
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[0])
         return pack
@@ -89,16 +99,23 @@ if __name__ == '__main__':
         job_queue.put(job_index)
 
     workers = []
-    worker_count = 2
+    worker_count = 1
     for i in range(worker_count):
         num = i+1
-        driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
+        driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
         driver.delete_all_cookies()
+        driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+            "source": """
+                Object.defineProperty(navigator, 'webdriver', {
+                    get: () => undefined
+                })
+            """
+        })
         worker = Worker(num, driver)
         workers.append(worker)
 
     for worker in workers:
-        worker.start()
+        worker.run()
 
     for worker in workers:
         worker.join()
