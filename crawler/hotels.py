@@ -27,7 +27,6 @@ class Worker(threading.Thread):
             elm = WebDriverWait(self.driver, 20).until(
                 ec.element_to_be_clickable((By.XPATH, "//button[@data-stid='show-more-results']"))
             )
-            print('break through')
             elm.click()
             time.sleep(1)
             check = len(self.driver.find_elements(By.XPATH, "//section[@class='results']/ol/li"))
@@ -43,10 +42,10 @@ class Worker(threading.Thread):
             try:
                 pack = self.fetch(c)
             except WebDriverException:
-                driver.refresh()
+                self.driver.refresh()
                 self.driver.close()
                 self.driver.switch_to.window(self.driver.window_handles[0])
-                driver.refresh()
+                self.driver.refresh()
                 pack = self.fetch(c)
 
             hotel_ls.append(pack)
@@ -56,7 +55,7 @@ class Worker(threading.Thread):
     def fetch(self, c):
         c.click()
         self.driver.switch_to.window(self.driver.window_handles[1])
-        detail_elm = WebDriverWait(self.driver, 20).until(
+        detail_elm = WebDriverWait(self.driver, 60).until(
             ec.presence_of_element_located((By.XPATH, "//div[@data-stid='content-hotel-title']"))
         )
         detail = detail_elm.text
@@ -95,7 +94,7 @@ if __name__ == '__main__':
         job_queue.put(job_index)
 
     workers = []
-    worker_count = 1
+    worker_count = 2
     for i in range(worker_count):
         num = i+1
         driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
@@ -111,7 +110,7 @@ if __name__ == '__main__':
         workers.append(worker)
 
     for worker in workers:
-        worker.run()
+        worker.start()
 
     for worker in workers:
         worker.join()
