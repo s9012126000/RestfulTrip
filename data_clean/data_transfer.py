@@ -24,8 +24,12 @@ def pack_data(web):
 
 def upload_s3(arr):
     for up in arr:
-        S3_object = S3.Object('hotelmongodata', up[0])
-        S3_object.put(Body=bytes(up[1].encode('UTF-8')))
+        if up[1] != '[]':
+            print(up[1])
+            S3_object = S3.Object('hotelmongodata', up[0])
+            S3_object.put(Body=bytes(up[1].encode('UTF-8')))
+        else:
+            print(f"{up[0]} is empty")
 
 
 def data_transfer():
