@@ -106,7 +106,7 @@ class Worker(threading.Thread):
                     except StaleElementReferenceException:
                         print(f'attempt {i + 1} fail')
                         if i == 4:
-                            with open('logs/agoda_lost_price.txt', 'a') as e:
+                            with open('logs/prices/agoda_lost_price.log', 'a') as e:
                                 e.write(url_new + '\n')
                             print(f"lost data")
         return price_ls

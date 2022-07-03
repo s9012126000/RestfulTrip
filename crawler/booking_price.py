@@ -74,7 +74,7 @@ def get_booking_price(link):
                 except AttributeError:
                     print(f'attempt {i+1} fail')
                     if i == 4:
-                        with open('logs/booking_lost_price.txt', 'a') as e:
+                        with open('logs/prices/booking_lost_price.log', 'a') as e:
                             e.write(url_new + '\n')
                         print(f"lost data")
     return price_ls

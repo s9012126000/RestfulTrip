@@ -1,6 +1,7 @@
 from config.mongo_config import *
 from config.crawler_config import *
 import threading
+import datetime
 import queue
 import time
 import json
@@ -14,12 +15,28 @@ class Worker(threading.Thread):
 
     def run(self):
         while not job_queue.empty():
-            self.get_region_hotels(job_queue.get())
-
+            region = job_queue.get()
+            try:
+                self.get_region_hotels(region)
+            except ElementClickInterceptedException:
+                for i in range(5):
+                    try:
+                        self.driver.refresh()
+                        print(f'form filled attempt {i}')
+                        self.get_region_hotels(region)
+                        break
+                    except ElementClickInterceptedException:
+                        print(f'attempt {i} fail')
+                        if i == 4:
+                            with open('logs/hotels/agoda_lost_region.log', 'a') as e:
+                                e.write(region, '\n')
+                            print(f"lost region")
+            self.get_hotels()
+            
     def get_region_hotels(self, div):
         url = 'https://www.agoda.com/zh-tw/'
         self.driver.get(url)
-        self.driver.maximize_window()
+        time.sleep(1)
         WebDriverWait(self.driver, 10).until(
             ec.element_to_be_clickable((By.XPATH, "//input[@data-selenium='textInput']"))
         ).click()
@@ -30,7 +47,7 @@ class Worker(threading.Thread):
         time.sleep(1)
         self.driver.find_element(By.XPATH, "//li[@data-selenium='allRoomsTab']").click()
         time.sleep(1)
-        print('form filled')
+        print(f'form {self.worker_num} filled')
         self.driver.find_element(By.XPATH, "//button[@data-selenium='searchButton']").click()
         try:
             WebDriverWait(self.driver, 10).until(
@@ -38,28 +55,61 @@ class Worker(threading.Thread):
             ).click()
         except TimeoutException:
             pass
-        self.get_hotels()
 
     def get_hotels(self):
         col = client['personal_project']['agoda']
         while True:
-            self.scroll_to_bottom()
-            try:
-                cards = WebDriverWait(self.driver, 10).until(
+            def get_cards():
+                self.scroll_to_bottom()
+                card = WebDriverWait(self.driver, 10).until(
                     ec.presence_of_all_elements_located((By.XPATH, "//a[@class='PropertyCard__Link']"))
                 )
+                card = [x.get_attribute('href') for x in card if x.get_attribute('href') is not None]
+                print(f'hotel cards per page: {len(card)}')
+                return card
+            try:
+                cards = get_cards()
+            except StaleElementReferenceException:
+                tag = False
+                cards = ''
+                for i in range(5):
+                    try:
+                        print(f'get card attempt {i}')
+                        self.driver.refresh()
+                        time.sleep(1)
+                        cards = get_cards()
+                        break
+                    except StaleElementReferenceException:
+                        print(f'get card attempt {i} fail')
+                        if i == 4:
+                            tag = True
+                            with open('logs/hotels/agoda_lost_cards.log', 'a') as e:
+                                e.write(self.driver.current_url, '\n')
+                            print(f"lost cards")
+                if tag:
+                    break
             except TimeoutException:
                 print('end of this pages')
-                break
-            cards = [x.get_attribute('href') for x in cards if x.get_attribute('href') is not None]
-            print(f'hotel cards per page: {len(cards)}')
+                break            
             hotel_ls = []
             for c in cards:
-                self.driver.execute_script("window.open()")
-                WebDriverWait(self.driver, 10).until(ec.number_of_windows_to_be(2))
-                self.driver.switch_to.window(self.driver.window_handles[1])
-                self.driver.get(c)
-                time.sleep(1)
+                def open_window():
+                    self.driver.execute_script("window.open()")
+                    WebDriverWait(self.driver, 10).until(ec.number_of_windows_to_be(2))
+                    self.driver.switch_to.window(self.driver.window_handles[1])
+                    self.driver.get(c)
+                    time.sleep(1)
+                try:
+                    open_window()
+                except TimeoutException:
+                    for k in range(5):
+                        try:
+                            print(f'open card attempt {k}')
+                            self.driver.close()
+                            self.driver.switch_to.window(self.driver.window_handles[0])
+                            open_window()
+                        except TimeoutException:
+                            print(f'open card attempt {k} fail')
 
                 def fetching():
                     wait = WebDriverWait(self.driver, 5)
@@ -119,9 +169,9 @@ class Worker(threading.Thread):
                         except StaleElementReferenceException:
                             print(f'attempt {j} fail')
                             if j == 4:
-                                with open('logs/agoda_lost_data.txt', 'a') as e:
+                                with open('logs/hotels/agoda_lost_data.log', 'a') as e:
                                     lnk = self.driver.current_url
-                                    e.write(lnk)
+                                    e.write(lnk, '\n')
                                 print(f"lost data")
                 self.driver.close()
                 self.driver.switch_to.window(self.driver.window_handles[0])
@@ -144,6 +194,8 @@ class Worker(threading.Thread):
 
 
 if __name__ == '__main__':
+    START_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"agoda started at {START_TIME}")
     with open('jsons/divisions.json') as d:
         divisions = json.load(d)
     ext = ['花蓮市', '台東市', '宜蘭市', '台南縣', '墾丁']
@@ -152,7 +204,7 @@ if __name__ == '__main__':
     for job_index in divisions:
         job_queue.put(job_index)
     workers = []
-    worker_count = 3
+    worker_count = 3 
     for i in range(worker_count):
         num = i+1
         driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
@@ -164,3 +216,6 @@ if __name__ == '__main__':
         worker.start()
     for worker in workers:
         worker.join()
+    END_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"agoda started at {START_TIME}")
+    print(f"agoda finished at {END_TIME}")

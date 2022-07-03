@@ -1,10 +1,10 @@
 from config.mongo_config import *
 from config.crawler_config import *
 import threading
+import datetime
 import queue
 import time
 import json
-
 
 class Worker(threading.Thread):
     def __init__(self, worker_num,driver):
@@ -57,7 +57,7 @@ class Worker(threading.Thread):
                             By.XPATH, "//section[@class='results']/ol/li/div/a[@data-stid='open-hotel-information']")
                         print(f'division {div} fail')
                         print(f'{self.worker_num} scan_done')
-                        with open('logs/hotels_lost_data.txt', 'a') as e:
+                        with open('logs/hotels/hotels_lost_data.log', 'a') as e:
                             e.write('url:\n' + str(URL) + '\n')
         hotel_ls = []
         for c in cards:
@@ -109,6 +109,8 @@ class Worker(threading.Thread):
 
 
 if __name__ == '__main__':
+    START_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"hotels started at {START_TIME}")
     with open('jsons/divisions.json') as f:
         divisions = json.load(f)
     job_queue = queue.Queue()
@@ -136,3 +138,6 @@ if __name__ == '__main__':
 
     for worker in workers:
         worker.join()
+    END_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"hotels started at {START_TIME}")
+    print(f"hotels finished at {END_TIME}")
