@@ -6,6 +6,7 @@ from difflib import SequenceMatcher
 import pandas as pd
 import time
 import re
+import os
 
 
 class Hotel_manager(ABC):
@@ -381,3 +382,11 @@ if __name__ == '__main__':
     hotels_to_sql(current_hotel)
     dt_to_sql('images', image_ls)
     dt_to_sql('resources', resource_ls)
+    os._exit(0)
+
+
+
+
+
+    # MyDb.close()
+    # pool.release(MyDb)

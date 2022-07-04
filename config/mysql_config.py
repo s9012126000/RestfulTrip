@@ -6,10 +6,10 @@ import pymysql
 import os
 load_dotenv()
 
-sql_host = os.getenv('host')
-sql_user = os.getenv('user')
-sql_pw = os.getenv('passwd')
-sql_db = os.getenv('database')
+sql_host = os.getenv('sql_host')
+sql_user = os.getenv('sql_user')
+sql_pw = os.getenv('sql_passwd')
+sql_db = os.getenv('sql_database')
 
 pool = Pool(
     host=sql_host,
