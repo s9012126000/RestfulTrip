@@ -3,24 +3,25 @@ from airflow import DAG
 import datetime
 import pendulum
 
-PATH = "/Users/chenjianfu/Library/Mobile\ Documents/com~apple~CloudDocs/Appwork\ school/personal_project"
+PATH = "/home/s9012126000_gmail_com/personal_project"
 
 default_args = {
   'owner': 'jeff',
   'email': ['s9012126000@gmail.com'],
-  'email_on_failure': False,
-  'email_on_retry': False,
+  'email_on_failure': True,
+  'email_on_retry': True,
   'retries': 3,
   'retry_delay': datetime.timedelta(seconds=30)
 }
 
 with DAG(
         dag_id='hotel_pipline',
-        schedule_interval='00 12 * * *',
+        schedule_interval='00 00 * * *',
         start_date=pendulum.datetime(2022, 7, 4, tz='Asia/Taipei'),
         catchup=False,
         default_args=default_args,
-        dagrun_timeout=datetime.timedelta(minutes=600)
+        max_active_runs=1,
+        dagrun_timeout=datetime.timedelta(minutes=1440)
 ) as dag:
 
     store_last_data = BashOperator(
