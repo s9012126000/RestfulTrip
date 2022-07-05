@@ -25,7 +25,6 @@ def pack_data(web):
 def upload_s3(arr):
     for up in arr:
         if up[1] != '[]':
-            print(up[1])
             S3_object = S3.Object('hotelmongodata', up[0])
             S3_object.put(Body=bytes(up[1].encode('UTF-8')))
         else:
@@ -42,11 +41,12 @@ def data_transfer():
     check = []
     for obj in bucket.objects.all():
         check.append(obj.key)
-    name_ls = [hotels[0], booking[0], agoda[0]]
-    if all(name in check for name in name_ls):
-        db = client['personal_project']
+    db = client['personal_project']
+    if hotels[0] in check:
         db['hotels'].drop()
+    if booking[0] in check:
         db['booking'].drop()
+    if agoda[0] in check:
         db['agoda'].drop()
 
 
