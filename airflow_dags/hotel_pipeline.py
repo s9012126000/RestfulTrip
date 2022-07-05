@@ -38,6 +38,13 @@ with DAG(
         dag=dag
     )
 
+    kill_chrome_pid1 = BashOperator(
+        task_id='kill_chrome_pid1',
+        bash_command="pkill chrome",
+        do_xcom_push=False,
+        dag=dag
+    )
+
     booking_crawler = BashOperator(
         task_id='booking_crawler',
         bash_command=f"cd {PATH}/crawler/ && python3 booking.py",
@@ -59,4 +66,11 @@ with DAG(
         dag=dag
     )
 
-    store_last_data >> hotels_crawler >> [booking_crawler, agoda_crawler] >> data_clean
+    kill_chrome_pid2 = BashOperator(
+        task_id='kill_chrome_pid2',
+        bash_command="pkill chrome",
+        do_xcom_push=False,
+        dag=dag
+    )
+
+    store_last_data >> hotels_crawler >> kill_chrome_pid1 >> [booking_crawler, agoda_crawler] >> kill_chrome_pid2 >> data_clean
