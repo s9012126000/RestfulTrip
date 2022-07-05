@@ -98,6 +98,8 @@ class Worker(threading.Thread):
 
 
 if __name__ == '__main__':
+    START_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"booking started at {START_TIME}")
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
     cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 2 ORDER BY hotel_id')
@@ -116,3 +118,10 @@ if __name__ == '__main__':
 
     for worker in workers:
         worker.start()
+
+    for worker in workers:
+        worker.join()
+
+    END_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"booking started at {START_TIME}")
+    print(f"booking finished at {END_TIME}")

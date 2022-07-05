@@ -32,7 +32,7 @@ class Worker(threading.Thread):
             jb = job_queue.get()
             prices = self.get_hotel_price(jb)
             if prices:
-                dt_to_sql('price', prices)
+                price_to_sql(prices)
                 print(f"insert {jb['hotel_id']} successfully")
             else:
                 print(f"{jb['hotel_id']} is empty")
@@ -87,23 +87,31 @@ class Worker(threading.Thread):
 
 
 if __name__ == '__main__':
+    START_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"hotels started at {START_TIME}")
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
     cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 1')
     urls = cursor.fetchall()
-
+    MyDb.commit()
     job_queue = queue.Queue()
     for job in urls:
         job_queue.put(job)
 
     workers = []
-    worker_count = 2
+    worker_count = 1
     for i in range(worker_count):
         num = i + 1
-        driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+        driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
         driver.delete_all_cookies()
         worker = Worker(num, driver)
         workers.append(worker)
 
     for worker in workers:
         worker.start()
+
+    for worker in workers:
+        worker.join()
+    END_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"hotels started at {START_TIME}")
+    print(f"hotels finished at {END_TIME}")

@@ -71,3 +71,18 @@ def dt_to_sql(table, ls):
     sql = f"INSERT IGNORE INTO {table} ({columns}) VALUES ({placeholders})"
     cursor.executemany(sql, vals)
     MyDb.commit()
+
+
+def price_to_sql(ls):
+    keys = list(ls[0].keys())
+    columns = ', '.join(keys)
+    placeholders = ', '.join(['%s'] * len(ls[0]))
+    vals = [tuple(val.values()) for val in ls]
+    MyDb.ping(reconnect=True)
+    cursor = MyDb.cursor()
+    sql = f"""
+    INSERT INTO price ({columns}) VALUES ({placeholders})
+    ON DUPLICATE KEY UPDATE price = VALUES (price)
+    """
+    cursor.executemany(sql, vals)
+    MyDb.commit()

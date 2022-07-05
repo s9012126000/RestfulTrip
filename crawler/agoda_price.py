@@ -113,6 +113,8 @@ class Worker(threading.Thread):
                         
                         
 if __name__ == '__main__':
+    START_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"agoda started at {START_TIME}")
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
     cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 3 AND hotel_id > 16 ORDER BY hotel_id')
@@ -126,7 +128,7 @@ if __name__ == '__main__':
     worker_count = 1
     for i in range(worker_count):
         num = i + 1
-        driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+        driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
         driver.delete_all_cookies()
         worker = Worker(num, driver)
         workers.append(worker)
@@ -134,3 +136,9 @@ if __name__ == '__main__':
     for worker in workers:
         worker.start()
 
+    for worker in workers:
+        worker.join()
+
+    END_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"agoda started at {START_TIME}")
+    print(f"agoda finished at {END_TIME}")
