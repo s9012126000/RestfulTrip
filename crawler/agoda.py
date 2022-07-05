@@ -207,7 +207,7 @@ if __name__ == '__main__':
     worker_count = 3 
     for i in range(worker_count):
         num = i+1
-        driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+        driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
         driver.delete_all_cookies()
         worker = Worker(num, driver)
         workers.append(worker)

@@ -2,10 +2,12 @@ from config.mongo_config import *
 from config.crawler_config import *
 from math import ceil
 
+import threading
 import datetime
 import random
 import json
 import time
+import queue
 
 
 def get_region_url():
@@ -34,11 +36,17 @@ def get_region_url():
     return links
 
 
-def get_booking_hotels():
-    col = client['personal_project']['booking']
-    with open('jsons/booking_regions_urls.json', 'r') as u:
-        region_urls = json.load(u)
-    for region in region_urls:
+class Worker(threading.Thread):
+    def __init__(self, worker_num):
+        threading.Thread.__init__(self)
+        self.worker_num = worker_num
+
+    def run(self):
+        while not job_queue.empty():
+            self.get_booking_hotels(job_queue.get())
+
+    def get_booking_hotels(self, region):
+        col = client['personal_project']['booking']
         hotel_num = region[1]
         url = region[0]
         iter_count = ceil(hotel_num / 25)
@@ -102,7 +110,7 @@ def get_booking_hotels():
                         'des': des,
                         'star': star
                     }
-                    print(f'success: {name}')
+                    print(f'{self.worker_num} success: {name}')
                     hotel_ls.append(pack)
                     time.sleep(random.randint(1, 2))
                 try:
@@ -133,7 +141,26 @@ if __name__ == '__main__':
     #     json.dump(booking_urls, f)
     START_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"booking started at {START_TIME}")
-    get_booking_hotels()
+
+    with open('jsons/booking_regions_urls.json', 'r') as u:
+        urls = json.load(u)
+    job_queue = queue.Queue()
+    for job in urls:
+        job_queue.put(job)
+
+    workers = []
+    worker_count = 4
+    for i in range(worker_count):
+        num = i + 1
+        worker = Worker(num)
+        workers.append(worker)
+
+    for worker in workers:
+        worker.start()
+
+    for worker in workers:
+        worker.join()
+
     END_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"booking started at {START_TIME}")
     print(f"booking finished at {END_TIME}")
