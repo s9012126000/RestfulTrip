@@ -1,12 +1,10 @@
-import time
-
-from personal_project.config.crawler_config import *
-from personal_project.config.mysql_config import *
-from urllib.parse import quote
+from config.crawler_config import *
+from config.mysql_config import *
 from pprint import pprint
 import datetime
 import threading
 import queue
+import time
 import re
 
 
@@ -76,7 +74,7 @@ def get_booking_price(link):
                 except AttributeError:
                     print(f'attempt {i+1} fail')
                     if i == 4:
-                        with open('logs/booking_lost_price.txt', 'a') as e:
+                        with open('logs/prices/booking_lost_price.log', 'a') as e:
                             e.write(url_new + '\n')
                         print(f"lost data")
     return price_ls
@@ -110,7 +108,7 @@ if __name__ == '__main__':
         job_queue.put(job)
 
     workers = []
-    worker_count = 8
+    worker_count = 1
     for i in range(worker_count):
         num = i + 1
         worker = Worker(num)

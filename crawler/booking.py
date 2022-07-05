@@ -1,7 +1,8 @@
-from personal_project.config.mongo_config import *
-from personal_project.config.crawler_config import *
+from config.mongo_config import *
+from config.crawler_config import *
 from math import ceil
 
+import datetime
 import random
 import json
 import time
@@ -69,7 +70,7 @@ def get_booking_hotels():
                         if i == 4:
                             tag = 'fail'
                 if tag == 'fail':
-                    with open('logs/lost_card.txt', 'a') as e:
+                    with open('logs/hotels/booking_lost_card.log', 'a') as e:
                         url = url + f'&offset={offset}'
                         e.write('url:\n' + url + '\n')
                     print(f"lost card")
@@ -116,7 +117,7 @@ def get_booking_hotels():
                         except AttributeError:
                             print(f'attempt {i} fail')
                             if i == 4:
-                                with open('logs/booking_lost_data.txt', 'a') as e:
+                                with open('logs/hotels/booking_lost_data.log', 'a') as e:
                                     lnk = card.find('a')['href']
                                     e.write('url:\n' + str(lnk) + '\n')
                                 print(f"lost data")
@@ -127,11 +128,13 @@ def get_booking_hotels():
 
 
 if __name__ == '__main__':
-    # should update every day
     # booking_urls = get_region_url()
     # with open('jsons/booking_regions_urls.json', 'w') as f:
     #     json.dump(booking_urls, f)
+    START_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"booking started at {START_TIME}")
     get_booking_hotels()
-
-
+    END_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"booking started at {START_TIME}")
+    print(f"booking finished at {END_TIME}")
 

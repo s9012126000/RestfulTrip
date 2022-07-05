@@ -1,5 +1,5 @@
-from personal_project.config.crawler_config import *
-from personal_project.config.mysql_config import *
+from config.crawler_config import *
+from config.mysql_config import *
 from pprint import pprint
 import datetime
 import threading
@@ -58,8 +58,6 @@ class Worker(threading.Thread):
                 cards = wait.until(ec.presence_of_element_located((By.ID, "Offers")))
                 wait.until(ec.presence_of_all_elements_located((By.TAG_NAME, 'ul')))
                 wait.until(ec.presence_of_all_elements_located((By.XPATH, "//div[@data-stid='price-summary']")))
-                # room = cards.find_elements(By.CLASS_NAME, "uitk-heading-6")
-                # room = [x.text for x in room]
                 room = cards.find_elements(By.TAG_NAME, 'ul')
                 room = [int(re.search(r"最多可入住 (\d) 人", x.text).group(1)) for x in room]
 
@@ -91,7 +89,7 @@ class Worker(threading.Thread):
 if __name__ == '__main__':
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
-    cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 1 and hotel_id > 490')
+    cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 1')
     urls = cursor.fetchall()
 
     job_queue = queue.Queue()
@@ -99,10 +97,10 @@ if __name__ == '__main__':
         job_queue.put(job)
 
     workers = []
-    worker_count = 3
+    worker_count = 2
     for i in range(worker_count):
         num = i + 1
-        driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
+        driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
         driver.delete_all_cookies()
         worker = Worker(num, driver)
         workers.append(worker)

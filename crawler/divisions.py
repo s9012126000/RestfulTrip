@@ -1,9 +1,9 @@
-from personal_project.config.crawler_config import *
+from config.crawler_config import *
 import json
 
 
 def get_divisions():
-    driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
+    driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
     driver.delete_all_cookies()
     URL_LOC = 'https://zh.wikipedia.org/wiki/中華民國臺灣地區鄉鎮市區列表'
     driver.get(URL_LOC)
