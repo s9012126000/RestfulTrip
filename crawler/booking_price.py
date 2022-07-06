@@ -98,19 +98,20 @@ class Worker(threading.Thread):
 
 
 if __name__ == '__main__':
-    START_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"booking started at {START_TIME}")
+    START_TIME = datetime.datetime.now()
+    print(f"booking started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
     cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 2 ORDER BY hotel_id')
-    urls = cursor.fetchall()
+    urls = cursor.fetchall()[0:10]
+    MyDb.commit()
 
     job_queue = queue.Queue()
     for job in urls:
         job_queue.put(job)
 
     workers = []
-    worker_count = 1
+    worker_count = 5
     for i in range(worker_count):
         num = i + 1
         worker = Worker(num)
@@ -122,6 +123,7 @@ if __name__ == '__main__':
     for worker in workers:
         worker.join()
 
-    END_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"booking started at {START_TIME}")
-    print(f"booking finished at {END_TIME}")
+    END_TIME = datetime.datetime.now()
+    print(f"booking started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"booking finished at {END_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"booking cost {(END_TIME - START_TIME).seconds // 60} minutes")

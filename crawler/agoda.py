@@ -113,9 +113,12 @@ class Worker(threading.Thread):
 
                 def fetching():
                     wait = WebDriverWait(self.driver, 5)
-                    name = wait.until(
-                        ec.presence_of_element_located((By.XPATH, "//h1[@data-selenium='hotel-header-name']"))
-                    ).text
+                    try:
+                        name = wait.until(
+                            ec.presence_of_element_located((By.XPATH, "//h1[@data-selenium='hotel-header-name']"))
+                        ).text
+                    except TimeoutException:
+                        raise StaleElementReferenceException
                     address = wait.until(
                         ec.presence_of_element_located((By.XPATH, "//span[@data-selenium='hotel-address-map']"))
                     ).text
@@ -130,7 +133,7 @@ class Worker(threading.Thread):
                         img = wait.until(
                             ec.presence_of_element_located((By.ID, 'PropertyMosaic'))
                         ).find_element(By.TAG_NAME, 'img').get_attribute('src')
-                    except TimeoutException:
+                    except (TimeoutException, NoSuchElementException):
                         img = "non-provided"
                     try:
                         des = wait.until(
@@ -194,8 +197,8 @@ class Worker(threading.Thread):
 
 
 if __name__ == '__main__':
-    START_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"agoda started at {START_TIME}")
+    START_TIME = datetime.datetime.now()
+    print(f"agoda started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
     with open('jsons/divisions.json') as d:
         divisions = json.load(d)
     ext = ['花蓮市', '台東市', '宜蘭市', '台南縣', '墾丁']
@@ -219,6 +222,7 @@ if __name__ == '__main__':
         worker.driver.quit()
         print(f'{worker.worker_num} done')
 
-    END_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"agoda started at {START_TIME}")
-    print(f"agoda finished at {END_TIME}")
+    END_TIME = datetime.datetime.now()
+    print(f"agoda started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"agoda finished at {END_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"agoda cost {(END_TIME-START_TIME).seconds//60} minutes")

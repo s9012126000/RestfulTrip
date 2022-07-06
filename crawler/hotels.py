@@ -21,7 +21,8 @@ class Worker(threading.Thread):
         col = client['personal_project']['hotels']
         URL = f'https://tw.hotels.com/Hotel-Search?destination={div}&startDate=2022-10-01&endDate=2022-10-02&rooms=1&adults=1'
         self.driver.get(URL)
-        print(f"{self.worker_num}",URL)
+        print(f"{self.worker_num}", URL)
+
         def get_cards():
             last_len = 0
             while True:
@@ -44,14 +45,14 @@ class Worker(threading.Thread):
             return cards
         try:
             cards = get_cards()
-        except TimeoutException:
+        except (TimeoutException, StaleElementReferenceException):
             for i in range(5):
                 try:
                     print(self.worker_num, 'attempt', i+1)
                     self.driver.refresh()
                     cards = get_cards()
                     break
-                except TimeoutException:
+                except (TimeoutException, StaleElementReferenceException):
                     print(self.worker_num, 'attempt', i+1, 'fail')
                     if i == 4:
                         cards = self.driver.find_elements(
@@ -111,7 +112,7 @@ class Worker(threading.Thread):
 
 if __name__ == '__main__':
     START_TIME = datetime.datetime.now()
-    print(f"hotels started at {START_TIME}")
+    print(f"hotels started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
     with open('jsons/divisions.json') as f:
         divisions = json.load(f)
     job_queue = queue.Queue()

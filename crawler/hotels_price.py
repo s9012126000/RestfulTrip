@@ -91,9 +91,10 @@ if __name__ == '__main__':
     print(f"hotels started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
-    cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 1')
+    cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 1 ORDER BY hotel_id')
     urls = cursor.fetchall()[0:10]
     MyDb.commit()
+
     job_queue = queue.Queue()
     for job in urls:
         job_queue.put(job)

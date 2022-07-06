@@ -139,8 +139,8 @@ if __name__ == '__main__':
     # booking_urls = get_region_url()
     # with open('jsons/booking_regions_urls.json', 'w') as f:
     #     json.dump(booking_urls, f)
-    START_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"booking started at {START_TIME}")
+    START_TIME = datetime.datetime.now()
+    print(f"booking started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
 
     with open('jsons/booking_regions_urls.json', 'r') as u:
         urls = json.load(u)
@@ -161,7 +161,8 @@ if __name__ == '__main__':
     for worker in workers:
         worker.join()
 
-    END_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"booking started at {START_TIME}")
-    print(f"booking finished at {END_TIME}")
+    END_TIME = datetime.datetime.now()
+    print(f"booking started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"booking finished at {END_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"booking cost {(END_TIME - START_TIME).seconds // 60} minutes")
 
