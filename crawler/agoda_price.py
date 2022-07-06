@@ -138,6 +138,8 @@ if __name__ == '__main__':
 
     for worker in workers:
         worker.join()
+        worker.driver.quit()
+        print(f'{worker.worker_num} done')
 
     END_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"agoda started at {START_TIME}")

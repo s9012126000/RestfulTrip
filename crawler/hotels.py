@@ -139,6 +139,9 @@ if __name__ == '__main__':
 
     for worker in workers:
         worker.join()
+        worker.driver.quit()
+        print(f'{worker.worker_num} done')
+
     END_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"hotels started at {START_TIME}")
     print(f"hotels finished at {END_TIME}")

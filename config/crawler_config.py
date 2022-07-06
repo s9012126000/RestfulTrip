@@ -13,7 +13,7 @@ from fake_useragent import UserAgent
 from bs4 import BeautifulSoup
 import requests
 
-user_agent = UserAgent().random
+user_agent = UserAgent(verify_ssl=False).random
 options = Options()
 options.page_load_strategy = 'eager'
 options = webdriver.ChromeOptions()
