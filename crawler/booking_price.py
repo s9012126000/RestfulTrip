@@ -27,6 +27,7 @@ def get_booking_price(link):
     uid = link['id']
     url = link['url']
     price_ls = []
+    empty_date = []
     for date in date_ls:
         checkin = date
         checkout = date + datetime.timedelta(days=1)
@@ -74,10 +75,14 @@ def get_booking_price(link):
                 except AttributeError:
                     print(f'attempt {i+1} fail')
                     if i == 4:
-                        with open('logs/prices/booking_lost_price.log', 'a') as e:
-                            e.write(url_new + '\n')
-                        print(f"lost data")
-    return price_ls
+                        print(f"{uid} is empty at {date}")
+                        empty_date.append(str(date))
+    empty_pack = {
+        'date': empty_date,
+        'resource_id': uid
+    }
+    pprint(empty_pack)
+    return price_ls, empty_pack
 
 
 class Worker(threading.Thread):
@@ -88,12 +93,14 @@ class Worker(threading.Thread):
     def run(self):
         while not job_queue.empty():
             jb = job_queue.get()
-            prices = get_booking_price(jb)
+            prices, empty = get_booking_price(jb)
             if prices:
                 dt_to_sql('price', prices)
                 print(f"insert {jb['hotel_id']} successfully")
             else:
                 print(f"{jb['hotel_id']} is empty")
+            if empty['date']:
+                empty_to_sql(empty)
             print(f"hotel {jb['hotel_id']}: done")
 
 
@@ -111,7 +118,7 @@ if __name__ == '__main__':
         job_queue.put(job)
 
     workers = []
-    worker_count = 5
+    worker_count = 1
     for i in range(worker_count):
         num = i + 1
         worker = Worker(num)

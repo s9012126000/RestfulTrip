@@ -86,3 +86,16 @@ def price_to_sql(ls):
     """
     cursor.executemany(sql, vals)
     MyDb.commit()
+
+
+def empty_to_sql(dt):
+    date = tuple(dt['date'])
+    MyDb.ping(reconnect=True)
+    cursor = MyDb.cursor()
+    sql = f"""
+    UPDATE price 
+    SET price = 0
+    WHERE date IN {date} AND resource_id = {dt['resource_id']};
+    """
+    cursor.execute(sql)
+    MyDb.commit()

@@ -31,12 +31,14 @@ class Worker(threading.Thread):
     def run(self):
         while not job_queue.empty():
             jb = job_queue.get()
-            prices = self.get_agoda_price(jb)
+            prices, empty = self.get_agoda_price(jb)
             if prices:
                 dt_to_sql('price', prices)
                 print(f"insert {jb['hotel_id']} successfully")
             else:
                 print(f"{jb['hotel_id']} is empty")
+            if empty['date']:
+                empty_to_sql(empty)
             print(f"hotel {jb['hotel_id']}: done")
 
     def get_agoda_price(self, link):
@@ -44,6 +46,7 @@ class Worker(threading.Thread):
         uid = link['id']
         url = link['url']
         price_ls = []
+        empty_date = []
         for date in date_ls:
             replaces = {'checkIn=2022-06-28': f'checkIn={date}'}
             url_new = replace_all(url, replaces)
@@ -92,7 +95,7 @@ class Worker(threading.Thread):
                 fetching()
             except TimeoutException:
                 print(f"{uid} is empty at {date}")
-                continue
+                empty_date.append(str(date))
             except StaleElementReferenceException:
                 for i in range(5):
                     try:
@@ -102,6 +105,7 @@ class Worker(threading.Thread):
                         break
                     except TimeoutException:
                         print(f"{uid} is empty at {date}")
+                        empty_date.append(str(date))
                         break
                     except StaleElementReferenceException:
                         print(f'attempt {i + 1} fail')
@@ -109,7 +113,12 @@ class Worker(threading.Thread):
                             with open('logs/prices/agoda_lost_price.log', 'a') as e:
                                 e.write(url_new + '\n')
                             print(f"lost data")
-        return price_ls
+        empty_pack = {
+            'date': empty_date,
+            'resource_id': uid
+        }
+        pprint(empty_pack)
+        return price_ls, empty_pack
                         
                         
 if __name__ == '__main__':

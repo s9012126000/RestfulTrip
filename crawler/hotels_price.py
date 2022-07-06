@@ -30,12 +30,14 @@ class Worker(threading.Thread):
     def run(self):
         while not job_queue.empty():
             jb = job_queue.get()
-            prices = self.get_hotel_price(jb)
+            prices, empty = self.get_hotel_price(jb)
             if prices:
                 price_to_sql(prices)
                 print(f"insert {jb['hotel_id']} successfully")
             else:
                 print(f"{jb['hotel_id']} is empty")
+            if empty['date']:
+                empty_to_sql(empty)
             print(f"hotel {jb['hotel_id']}: done")
 
     def get_hotel_price(self, link):
@@ -43,6 +45,7 @@ class Worker(threading.Thread):
         uid = link['id']
         url = link['url']
         price_ls = []
+        empty_date = []
         for date in date_ls:
             checkin = date
             checkout = date + datetime.timedelta(days=1)
@@ -82,8 +85,13 @@ class Worker(threading.Thread):
                 price_ls.extend(price_pack)
             except TimeoutException:
                 print(f"{uid} is empty at {date}")
-                continue
-        return price_ls
+                empty_date.append(str(date))
+        empty_pack = {
+            'date': empty_date,
+            'resource_id': uid
+        }
+        pprint(empty_pack)
+        return price_ls, empty_pack
 
 
 if __name__ == '__main__':
