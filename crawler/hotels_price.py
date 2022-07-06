@@ -87,12 +87,12 @@ class Worker(threading.Thread):
 
 
 if __name__ == '__main__':
-    START_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"hotels started at {START_TIME}")
+    START_TIME = datetime.datetime.now()
+    print(f"hotels started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
     cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 1')
-    urls = cursor.fetchall()
+    urls = cursor.fetchall()[0:10]
     MyDb.commit()
     job_queue = queue.Queue()
     for job in urls:
@@ -115,6 +115,7 @@ if __name__ == '__main__':
         worker.driver.quit()
         print(f'{worker.worker_num} done')
 
-    END_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"hotels started at {START_TIME}")
-    print(f"hotels finished at {END_TIME}")
+    END_TIME = datetime.datetime.now()
+    print(f"hotels started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"hotels finished at {END_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"hotels cost {(END_TIME-START_TIME).seconds//60} minutes")

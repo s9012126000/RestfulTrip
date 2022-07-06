@@ -110,7 +110,7 @@ class Worker(threading.Thread):
 
 
 if __name__ == '__main__':
-    START_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    START_TIME = datetime.datetime.now()
     print(f"hotels started at {START_TIME}")
     with open('jsons/divisions.json') as f:
         divisions = json.load(f)
@@ -142,6 +142,7 @@ if __name__ == '__main__':
         worker.driver.quit()
         print(f'{worker.worker_num} done')
 
-    END_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"hotels started at {START_TIME}")
-    print(f"hotels finished at {END_TIME}")
+    END_TIME = datetime.datetime.now()
+    print(f"hotels started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"hotels finished at {END_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"hotels cost {(END_TIME-START_TIME).seconds//60} minutes")
