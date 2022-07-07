@@ -90,6 +90,8 @@ def price_to_sql(ls):
 
 def empty_to_sql(dt):
     date = tuple(dt['date'])
+    if len(date) == 1:
+        date = f"('{date[0]}')"
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
     sql = f"""
