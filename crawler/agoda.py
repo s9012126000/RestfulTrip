@@ -29,7 +29,8 @@ class Worker(threading.Thread):
                         print(f'attempt {i} fail')
                         if i == 4:
                             with open('logs/hotels/agoda_lost_region.log', 'a') as e:
-                                e.write(region, '\n')
+                                msg = region + '\n'
+                                e.write(msg)
                             print(f"lost region")
             self.get_hotels()
             
@@ -173,8 +174,8 @@ class Worker(threading.Thread):
                             print(f'attempt {j} fail')
                             if j == 4:
                                 with open('logs/hotels/agoda_lost_data.log', 'a') as e:
-                                    lnk = self.driver.current_url
-                                    e.write(lnk, '\n')
+                                    lnk = self.driver.current_url + '\n'
+                                    e.write(lnk)
                                 print(f"lost data")
                 self.driver.close()
                 self.driver.switch_to.window(self.driver.window_handles[0])

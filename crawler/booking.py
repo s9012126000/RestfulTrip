@@ -11,16 +11,16 @@ import queue
 
 
 def get_region_url():
-    with open('jsons/divisions.json') as d:
+    with open('../crawler/jsons/divisions.json') as d:
         divisions = json.load(d)
     ext = ['花蓮市', '台東市', '宜蘭市', '台南縣']
     divisions.extend(ext)
     links = []
+    driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
     for div in divisions:
         if '臺' in div:
             div = div.replace('臺', '台')
         print(div)
-        driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
         driver.get('https://www.booking.com/searchresults.zh-tw.html')
         input_elm = WebDriverWait(driver, 10).until(
             ec.visibility_of_element_located((By.XPATH, "//input[@name='ss']"))
@@ -31,9 +31,10 @@ def get_region_url():
             ec.visibility_of_element_located((By.XPATH, "//div[@data-component='arp-header']/div/div/div/h1"))
         ).text.split(' ')[1])
         url = driver.current_url
-        driver.close()
         links.append((url, hotel_num))
-    return links
+    driver.quit()
+    with open('../crawler/jsons/booking_regions_urls.json', 'w') as f:
+        json.dump(links, f)
 
 
 class Worker(threading.Thread):
@@ -136,9 +137,6 @@ class Worker(threading.Thread):
 
 
 if __name__ == '__main__':
-    # booking_urls = get_region_url()
-    # with open('jsons/booking_regions_urls.json', 'w') as f:
-    #     json.dump(booking_urls, f)
     START_TIME = datetime.datetime.now()
     print(f"booking started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
 

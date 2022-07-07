@@ -8,7 +8,7 @@ import json
 
 
 class Worker(threading.Thread):
-    def __init__(self, worker_num,driver):
+    def __init__(self, worker_num, driver):
         threading.Thread.__init__(self)
         self.worker_num = worker_num
         self.driver = driver
@@ -45,14 +45,14 @@ class Worker(threading.Thread):
             return cards
         try:
             cards = get_cards()
-        except (TimeoutException, StaleElementReferenceException):
+        except:
             for i in range(5):
                 try:
                     print(self.worker_num, 'attempt', i+1)
                     self.driver.refresh()
                     cards = get_cards()
                     break
-                except (TimeoutException, StaleElementReferenceException):
+                except:
                     print(self.worker_num, 'attempt', i+1, 'fail')
                     if i == 4:
                         cards = self.driver.find_elements(
@@ -65,13 +65,15 @@ class Worker(threading.Thread):
         for c in cards:
             try:
                 pack = self.fetch(c)
-            except WebDriverException:
-                self.driver.refresh()
-                self.driver.close()
-                self.driver.switch_to.window(self.driver.window_handles[0])
-                self.driver.refresh()
-                pack = self.fetch(c)
-
+            except:
+                try:
+                    self.driver.refresh()
+                    self.driver.close()
+                    self.driver.switch_to.window(self.driver.window_handles[0])
+                    self.driver.refresh()
+                    pack = self.fetch(c)
+                except:
+                    continue
             hotel_ls.append(pack)
         col.insert_many(hotel_ls, bypass_document_validation=True)
         print(f'{div}: done at {time.perf_counter()}')
@@ -120,7 +122,7 @@ if __name__ == '__main__':
         job_queue.put(job_index)
 
     workers = []
-    worker_count = 3
+    worker_count = 4
     for i in range(worker_count):
         num = i+1
         driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
