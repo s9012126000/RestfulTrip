@@ -54,7 +54,8 @@ class Worker(threading.Thread):
     
             def fetching():
                 self.driver.get(url_new)
-                wait = WebDriverWait(self.driver, 5)
+                time.sleep(0.5)
+                wait = WebDriverWait(self.driver, 1)
                 price = wait.until(
                     ec.presence_of_all_elements_located((By.XPATH, "//strong[@data-ppapi='room-price']"))
                 )
@@ -97,10 +98,10 @@ class Worker(threading.Thread):
                 print(f"{uid} is empty at {date}")
                 empty_date.append(str(date))
             except StaleElementReferenceException:
-                for i in range(5):
+                for i in range(3):
                     try:
                         print(f'attempt {i+1}')
-                        time.sleep(3)
+                        self.driver.refresh()
                         fetching()
                         break
                     except TimeoutException:
@@ -109,7 +110,9 @@ class Worker(threading.Thread):
                         break
                     except StaleElementReferenceException:
                         print(f'attempt {i + 1} fail')
-                        if i == 4:
+                        if i == 2:
+                            print(f"{uid} is empty at {date}")
+                            empty_date.append(str(date))
                             with open('logs/prices/agoda_lost_price.log', 'a') as e:
                                 e.write(url_new + '\n')
                             print(f"lost data")
@@ -153,4 +156,4 @@ if __name__ == '__main__':
     END_TIME = datetime.datetime.now()
     print(f"agoda started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"agoda finished at {END_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"agoda cost {(END_TIME - START_TIME).seconds // 60} minutes")
+    print(f"agoda cost {round(((END_TIME-START_TIME).seconds/60), 2)} minutes")

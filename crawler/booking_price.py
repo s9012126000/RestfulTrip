@@ -118,7 +118,7 @@ if __name__ == '__main__':
         job_queue.put(job)
 
     workers = []
-    worker_count = 1
+    worker_count = 10
     for i in range(worker_count):
         num = i + 1
         worker = Worker(num)

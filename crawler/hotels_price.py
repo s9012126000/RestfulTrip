@@ -1,3 +1,5 @@
+import time
+
 from config.crawler_config import *
 from config.mysql_config import *
 from pprint import pprint
@@ -56,10 +58,17 @@ class Worker(threading.Thread):
             url_new = replace_all(url, replaces)
             self.driver.get(url_new)
             self.driver.execute_script("window.scrollTo(0, 800)")
-            wait = WebDriverWait(self.driver, 3)
+            time.sleep(0.8)
+            wait = WebDriverWait(self.driver, 1)
             try:
                 cards = wait.until(ec.presence_of_element_located((By.ID, "Offers")))
                 wait.until(ec.presence_of_all_elements_located((By.TAG_NAME, 'ul')))
+                try:
+                    empty = self.driver.find_element(By.XPATH, "//div[@data-stid='error-messages']").text
+                    print(empty)
+                    raise TimeoutException
+                except NoSuchElementException:
+                    pass
                 wait.until(ec.presence_of_all_elements_located((By.XPATH, "//div[@data-stid='price-summary']")))
                 room = cards.find_elements(By.TAG_NAME, 'ul')
                 room = [int(re.search(r"最多可入住 (\d) 人", x.text).group(1)) for x in room]
@@ -100,7 +109,7 @@ if __name__ == '__main__':
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
     cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 1 ORDER BY hotel_id')
-    urls = cursor.fetchall()[0:10]
+    urls = cursor.fetchall()[0:1]
     MyDb.commit()
 
     job_queue = queue.Queue()
@@ -127,4 +136,4 @@ if __name__ == '__main__':
     END_TIME = datetime.datetime.now()
     print(f"hotels started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"hotels finished at {END_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"hotels cost {(END_TIME-START_TIME).seconds//60} minutes")
+    print(f"hotels cost {round(((END_TIME-START_TIME).seconds/60), 2)} minutes")
