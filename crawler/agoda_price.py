@@ -50,11 +50,9 @@ class Worker(threading.Thread):
         for date in date_ls:
             replaces = {'checkIn=2022-06-28': f'checkIn={date}'}
             url_new = replace_all(url, replaces)
-            print(url_new)
     
             def fetching():
                 self.driver.get(url_new)
-                time.sleep(0.5)
                 wait = WebDriverWait(self.driver, 1)
                 price = wait.until(
                     ec.presence_of_all_elements_located((By.XPATH, "//strong[@data-ppapi='room-price']"))
@@ -130,7 +128,7 @@ if __name__ == '__main__':
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
     cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 3 ORDER BY hotel_id')
-    urls = cursor.fetchall()[0:10]
+    urls = cursor.fetchall()[0:1]
     MyDb.commit()
     job_queue = queue.Queue()
     for job in urls:

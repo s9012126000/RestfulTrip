@@ -56,11 +56,12 @@ class Worker(threading.Thread):
                 'chkout=2022-10-02': f'chkout={checkout}',
             }
             url_new = replace_all(url, replaces)
-            self.driver.get(url_new)
-            self.driver.execute_script("window.scrollTo(0, 800)")
-            time.sleep(0.8)
-            wait = WebDriverWait(self.driver, 1)
+            # driver.set_page_load_timeout(10)
             try:
+                self.driver.get(url_new)
+                self.driver.execute_script("window.scrollTo(0, 800)")
+                time.sleep(0.5)
+                wait = WebDriverWait(self.driver, 1)
                 cards = wait.until(ec.presence_of_element_located((By.ID, "Offers")))
                 wait.until(ec.presence_of_all_elements_located((By.TAG_NAME, 'ul')))
                 try:
@@ -109,7 +110,7 @@ if __name__ == '__main__':
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
     cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 1 ORDER BY hotel_id')
-    urls = cursor.fetchall()[0:1]
+    urls = cursor.fetchall()[0:10]
     MyDb.commit()
 
     job_queue = queue.Queue()
@@ -117,7 +118,7 @@ if __name__ == '__main__':
         job_queue.put(job)
 
     workers = []
-    worker_count = 1
+    worker_count = 5
     for i in range(worker_count):
         num = i + 1
         driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
