@@ -24,22 +24,23 @@ def get_thirty_dates():
 
 
 class Worker(threading.Thread):
-    def __init__(self, worker_num, driver):
+    def __init__(self, worker_num, driver, db):
         threading.Thread.__init__(self)
         self.worker_num = worker_num
         self.driver = driver
+        self.db = db
 
     def run(self):
         while not job_queue.empty():
             jb = job_queue.get()
             prices, empty = self.get_hotel_price(jb)
             if prices:
-                price_to_sql(prices)
+                price_to_sql(prices, self.db)
                 print(f"insert {jb['hotel_id']} successfully")
             else:
                 print(f"{jb['hotel_id']} is empty")
             if empty['date']:
-                empty_to_sql(empty)
+                empty_to_sql(empty, self.db)
             print(f"hotel {jb['hotel_id']}: done")
 
     def get_hotel_price(self, link):
@@ -105,6 +106,7 @@ class Worker(threading.Thread):
 
 
 if __name__ == '__main__':
+    MyDb = pool.get_conn()
     START_TIME = datetime.datetime.now()
     print(f"hotels started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
     MyDb.ping(reconnect=True)
@@ -112,6 +114,7 @@ if __name__ == '__main__':
     cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 1 ORDER BY hotel_id')
     urls = cursor.fetchall()[0:10]
     MyDb.commit()
+    pool.release(MyDb)
 
     job_queue = queue.Queue()
     for job in urls:
@@ -120,10 +123,11 @@ if __name__ == '__main__':
     workers = []
     worker_count = 5
     for i in range(worker_count):
+        MyDb = pool.get_conn()
         num = i + 1
         driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
         driver.delete_all_cookies()
-        worker = Worker(num, driver)
+        worker = Worker(num, driver, MyDb)
         workers.append(worker)
 
     for worker in workers:
@@ -132,9 +136,11 @@ if __name__ == '__main__':
     for worker in workers:
         worker.join()
         worker.driver.quit()
+        pool.release(worker.db)
         print(f'{worker.worker_num} done')
 
     END_TIME = datetime.datetime.now()
     print(f"hotels started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"hotels finished at {END_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"hotels cost {round(((END_TIME-START_TIME).seconds/60), 2)} minutes")
+    os._exit(0)

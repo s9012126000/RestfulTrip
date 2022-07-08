@@ -16,10 +16,10 @@ pool = Pool(
     user=sql_user,
     password=sql_pw,
     db=sql_db,
+    max_size=10,
     cursorclass=pymysql.cursors.DictCursor
 )
 pool.init()
-MyDb = pool.get_conn()
 
 engine = create_engine(
     f"mysql+pymysql://{sql_user}:{sql_pw}@{sql_host}:3306/{sql_db}?charset=utf8",
@@ -30,25 +30,25 @@ engine = create_engine(
 )
 
 
-def sql_strict_insert(table, ls):
+def sql_strict_insert(table, ls, db):
     keys = list(ls[0].keys())
     columns = ', '.join(keys)
     placeholders = ', '.join(['%s'] * len(ls[0]))
     vals = [tuple(val.values()) for val in ls]
-    cursor = MyDb.cursor()
+    cursor = db.cursor()
     sql = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
     cursor.executemany(sql, vals)
-    MyDb.commit()
+    db.commit()
 
 
-def hotels_to_sql(df):
+def hotels_to_sql(df, db):
     ls = df.to_dict('records')
     keys = list(ls[0].keys())
     columns = ', '.join(keys)
     placeholders = ', '.join(['%s'] * len(ls[0]))
     vals = [tuple(val.values()) for val in ls]
-    MyDb.ping(reconnect=True)
-    cursor = MyDb.cursor()
+    db.ping(reconnect=True)
+    cursor = db.cursor()
     sql = f"""
     INSERT INTO hotels ({columns}) VALUES ({placeholders})
     ON DUPLICATE KEY UPDATE 
@@ -58,46 +58,46 @@ def hotels_to_sql(df):
         star = VALUES (star)
     """
     cursor.executemany(sql, vals)
-    MyDb.commit()
+    db.commit()
 
 
-def dt_to_sql(table, ls):
+def dt_to_sql(table, ls, db):
     keys = list(ls[0].keys())
     columns = ', '.join(keys)
     placeholders = ', '.join(['%s'] * len(ls[0]))
     vals = [tuple(val.values()) for val in ls]
-    MyDb.ping(reconnect=True)
-    cursor = MyDb.cursor()
+    db.ping(reconnect=True)
+    cursor = db.cursor()
     sql = f"INSERT IGNORE INTO {table} ({columns}) VALUES ({placeholders})"
     cursor.executemany(sql, vals)
-    MyDb.commit()
+    db.commit()
 
 
-def price_to_sql(ls):
+def price_to_sql(ls, db):
     keys = list(ls[0].keys())
     columns = ', '.join(keys)
     placeholders = ', '.join(['%s'] * len(ls[0]))
     vals = [tuple(val.values()) for val in ls]
-    MyDb.ping(reconnect=True)
-    cursor = MyDb.cursor()
+    db.ping(reconnect=True)
+    cursor = db.cursor()
     sql = f"""
     INSERT INTO price ({columns}) VALUES ({placeholders})
     ON DUPLICATE KEY UPDATE price = VALUES (price)
     """
     cursor.executemany(sql, vals)
-    MyDb.commit()
+    db.commit()
 
 
-def empty_to_sql(dt):
+def empty_to_sql(dt, db):
     date = tuple(dt['date'])
     if len(date) == 1:
         date = f"('{date[0]}')"
-    MyDb.ping(reconnect=True)
-    cursor = MyDb.cursor()
+    db.ping(reconnect=True)
+    cursor = db.cursor()
     sql = f"""
     UPDATE price 
     SET price = 0
     WHERE date IN {date} AND resource_id = {dt['resource_id']};
     """
     cursor.execute(sql)
-    MyDb.commit()
+    db.commit()

@@ -86,25 +86,27 @@ def get_booking_price(link):
 
 
 class Worker(threading.Thread):
-    def __init__(self, worker_num):
+    def __init__(self, worker_num, db):
         threading.Thread.__init__(self)
         self.worker_num = worker_num
+        self.db = db
 
     def run(self):
         while not job_queue.empty():
             jb = job_queue.get()
             prices, empty = get_booking_price(jb)
             if prices:
-                dt_to_sql('price', prices)
+                price_to_sql(prices, self.db)
                 print(f"insert {jb['hotel_id']} successfully")
             else:
                 print(f"{jb['hotel_id']} is empty")
             if empty['date']:
-                empty_to_sql(empty)
+                empty_to_sql(empty, self.db)
             print(f"hotel {jb['hotel_id']}: done")
 
 
 if __name__ == '__main__':
+    MyDb = pool.get_conn()
     START_TIME = datetime.datetime.now()
     print(f"booking started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
     MyDb.ping(reconnect=True)
@@ -112,6 +114,7 @@ if __name__ == '__main__':
     cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 2 ORDER BY hotel_id')
     urls = cursor.fetchall()[0:10]
     MyDb.commit()
+    pool.release(MyDb)
 
     job_queue = queue.Queue()
     for job in urls:
@@ -120,8 +123,9 @@ if __name__ == '__main__':
     workers = []
     worker_count = 10
     for i in range(worker_count):
+        MyDb = pool.get_conn()
         num = i + 1
-        worker = Worker(num)
+        worker = Worker(num, MyDb)
         workers.append(worker)
 
     for worker in workers:
@@ -129,8 +133,11 @@ if __name__ == '__main__':
 
     for worker in workers:
         worker.join()
+        pool.release(worker.db)
+        print(f'{worker.worker_num} done')
 
     END_TIME = datetime.datetime.now()
     print(f"booking started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"booking finished at {END_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"booking cost {(END_TIME - START_TIME).seconds // 60} minutes")
+    os._exit(0)
