@@ -10,8 +10,8 @@ import time
 import queue
 
 
-def get_region_url():
-    with open('../crawler/jsons/divisions.json') as d:
+def get_region_url(path):
+    with open(f'{path}/crawler/jsons/divisions.json') as d:
         divisions = json.load(d)
     ext = ['花蓮市', '台東市', '宜蘭市', '台南縣']
     divisions.extend(ext)
@@ -33,7 +33,7 @@ def get_region_url():
         url = driver.current_url
         links.append((url, hotel_num))
     driver.quit()
-    with open('../crawler/jsons/booking_regions_urls.json', 'w') as f:
+    with open(f'{path}/crawler/jsons/booking_regions_urls.json', 'w') as f:
         json.dump(links, f)
 
 

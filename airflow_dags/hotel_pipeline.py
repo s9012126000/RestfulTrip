@@ -43,6 +43,7 @@ with DAG(
     get_booking_region = PythonOperator(
         task_id='get_booking_region',
         python_callable=get_region_url,
+        op_kwargs={"path":PATH},
         do_xcom_push=False,
         dag=dag
     )
