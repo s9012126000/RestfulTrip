@@ -360,6 +360,7 @@ class Agoda(Hotel_manager, ABC):
 
 
 if __name__ == '__main__':
+    MyDb = pool.get_conn()
     hotels = Hotels()
     booking = Booking()
     agoda = Agoda()
@@ -379,9 +380,10 @@ if __name__ == '__main__':
             data_pack = job.run(current_hotel)
             current_hotel = data_pack[0]
 
-    hotels_to_sql(current_hotel)
-    dt_to_sql('images', image_ls)
-    dt_to_sql('resources', resource_ls)
+    hotels_to_sql(current_hotel, MyDb)
+    dt_to_sql('images', image_ls, MyDb)
+    dt_to_sql('resources', resource_ls, MyDb)
+    pool.release(MyDb)
     os._exit(0)
 
 
