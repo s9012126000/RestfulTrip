@@ -54,6 +54,7 @@ class Worker(threading.Thread):
     
             def fetching():
                 self.driver.get(url_new)
+                time.sleep(0.5)
                 wait = WebDriverWait(self.driver, 1)
                 price = wait.until(
                     ec.presence_of_all_elements_located((By.XPATH, "//strong[@data-ppapi='room-price']"))
@@ -61,7 +62,7 @@ class Worker(threading.Thread):
                 price = [int(x.text.replace(',', '')) for x in price]
                 if 0 in price:
                     self.driver.refresh()
-                    time.sleep(3)
+                    time.sleep(1)
                     price = wait.until(
                         ec.presence_of_all_elements_located((By.XPATH, "//strong[@data-ppapi='room-price']"))
                     )
@@ -115,7 +116,7 @@ if __name__ == '__main__':
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
     cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 3 ORDER BY hotel_id')
-    urls = cursor.fetchall()[0:10]
+    urls = cursor.fetchall()[0:8]
     MyDb.commit()
     pool.release(MyDb)
 

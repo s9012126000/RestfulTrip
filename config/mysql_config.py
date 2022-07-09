@@ -16,7 +16,7 @@ pool = Pool(
     user=sql_user,
     password=sql_pw,
     db=sql_db,
-    max_size=10,
+    max_size=20,
     cursorclass=pymysql.cursors.DictCursor
 )
 pool.init()
