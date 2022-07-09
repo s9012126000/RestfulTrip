@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>RestfulTrip</title>
     <link href="./static/bootstrap.css" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="./static/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./static/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./static/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="./static/favicon_io/site.webmanifest">
   </head>
   <body>
       <!-- title -->
@@ -120,17 +124,29 @@
                         {% if p == 1 %}
                           <a href="{{ price[hotel_data[i].id][p][1] }}" target="_blank" style="text-decoration:none; color:#003060" >
                             <img src="https://tw.hotels.com/_dms/header/logo.svg?locale=zh_TW&siteid=300000045&2" style="width:80px">
+                            {% if price[hotel_data[i].id][p][0] == '0' %}
+                            <h4 class="card-text mb-2" >當日已無空房</h4>
+                            {% else %}
                             <h4 class="card-text mb-2" >NT${{ price[hotel_data[i].id][p][0] }}</h4>
+                            {% endif %}
                           </a>
                         {% elif p == 2 %}
                           <a href="{{ price[hotel_data[i].id][p][1] }}" target="_blank" style="text-decoration:none; color:#003060">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Booking.com_Logo.svg/320px-Booking.com_Logo.svg.png" style="width:80px">
-                            <h4 class="card-text mb-2">NT${{ price[hotel_data[i].id][p][0] }}</h4>
+                            {% if price[hotel_data[i].id][p][0] == '0' %}
+                            <h4 class="card-text mb-2" >當日已無空房</h4>
+                            {% else %}
+                            <h4 class="card-text mb-2" >NT${{ price[hotel_data[i].id][p][0] }}</h4>
+                            {% endif %}
                           </a>
                         {% elif p == 3 %}
                           <a href="{{ price[hotel_data[i].id][p][1] }}" target="_blank" style="text-decoration:none; color:#003060">
                             <img src="https://cdn6.agoda.net/images/kite-js/logo/agoda/color-default.svg" style="width:50px">
-                            <h4 class="card-text mb-2">NT${{ price[hotel_data[i].id][p][0] }}</h4>
+                            {% if price[hotel_data[i].id][p][0] == '0' %}
+                            <h4 class="card-text mb-2" >當日已無空房</h4>
+                            {% else %}
+                            <h4 class="card-text mb-2" >NT${{ price[hotel_data[i].id][p][0] }}</h4>
+                            {% endif %}
                           </a>
                         {% endif %}
                       {% endfor %}
@@ -145,8 +161,8 @@
         </div>
       </div>
       <!-- paging -->
-      <div class="d-flex justify-content-center mb-5">
-        {% if user_send.dest and user_send.checkin and user_send.checkout and user_send.person %}
+      <div class="d-flex justify-content-center mb-0 pb-0">
+        {% if '為您搜出' in msg %}
         <nav aria-label="Page navigation example">
           <ul class="pagination">
             {% if page|int == 0 %}
@@ -154,16 +170,27 @@
             {% else %}
               <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int -1}}">Previous</a></li>
             {% endif %}
+
             {% if page|int -2 > 0 %}
               <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int-2}}">{{page|int-2}}</a></li>
             {% endif %}
+
             {% if page|int -1 > 0 %}
               <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int-1}}">{{page|int-1}}</a></li>
             {% endif %}
-              <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int}}">{{page|int}}</a></li>
+
+              <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int}}"><b >{{page|int}}</b></a></li>
+
+            {% if page|int < page_tol|int %}
               <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int+1}}">{{page|int+1}}</a></li>
+            {% endif %}
+            {% if page|int < page_tol|int-1 %}
               <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int+2}}">{{page|int+2}}</a></li>
-            <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int +1}}">Next</a></li>
+            {% endif %}
+            {% if page|int < page_tol|int %}
+              <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int +1}}">Next</a></li>
+            {% endif %}
+
           </ul>
         </nav>
         {% endif %}

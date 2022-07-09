@@ -4,6 +4,7 @@ __pycache__/
 imgs/
 logs/
 tmp/
+favicon_io/
 
 #files
 test.*
