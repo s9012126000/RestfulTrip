@@ -41,7 +41,7 @@ options.add_argument('--charset=utf-8')
 options.add_argument("-–disable-blink-features")
 options.add_argument("-–disable-blink-features=AutomationControlled")
 options.add_argument('--disable-dev-shm-usage')
-options.binary_location = '/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta'
+options.binary_location = '/usr/bin/google-chrome-beta'
 # options.add_argument('--v=99')
 # options.add_argument('--single-process')
 # options.add_argument('--data-path=tmp/data-path')
