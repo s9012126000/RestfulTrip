@@ -52,7 +52,8 @@ def hotels():
         person = int(person)
     except ValueError:
         person = 'wrong'
-    if count and checkout >= checkin and dest and person != 'wrong' and date_tag and not re.search(r'[\dA-Za-z]+', dest):
+    if count and checkout >= checkin and dest and person != 'wrong' and date_tag and\
+            checkin and checkout and not re.search(r'[\dA-Za-z]+', dest):
         cursor.execute(
             f"SELECT * FROM hotels WHERE address like '%{dest}%' ORDER BY id LIMIT {(int(page) - 1) * 15},15")
         hotel_data = cursor.fetchall()
