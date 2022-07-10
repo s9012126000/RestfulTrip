@@ -8,6 +8,5 @@ RUN apt-get install -y wget
 RUN wget -q https://dl.google.com/linux/direct/google-chrome-beta_current_amd64.deb
 RUN dpkg --unpack ./google-chrome-beta_current_amd64.deb
 RUN apt-get install -f -y
-#RUN sudo apt-get install ./google-chrome-beta_current_amd64.deb
 COPY . .
-CMD [ "python3", "test.py"]
+CMD [ "python3", "crawler_test.py"]
