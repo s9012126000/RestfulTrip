@@ -51,23 +51,39 @@ def hotels():
     MyDb.commit()
     msg = f'為您搜出 {count} 間旅館'
     page_tol = ceil(count/15)
-    if page is None:
+    if page is None or page == '':
         page = 1
+    page_tag = True
+    try:
+        page = int(page)
+        if page_tol < page or page <= 0:
+            page_tag = False
+    except:
+        page_tag = False
 
+    date_limit = True
     date_tag = True
-    if checkin != '' and checkout != '':
-        che_in = datetime.datetime.strptime(checkin, "%Y-%m-%d")
-        che_out = datetime.datetime.strptime(checkout, "%Y-%m-%d")
-        if che_out < che_in:
+    try:
+        if checkin != '' and checkout != '':
+            che_in = datetime.datetime.strptime(checkin, "%Y-%m-%d")
+            che_out = datetime.datetime.strptime(checkout, "%Y-%m-%d")
+            if che_out < che_in:
+                date_tag = False
+            elif che_in.date() < datetime.datetime.now().date():
+                date_tag = False
+            elif (che_out - che_in).days > 30:
+                date_tag = False
+                date_limit = False
+        else:
             date_tag = False
-        elif (che_out - che_in).days > 30:
-            date_tag = False
-    else:
+    except ValueError:
         date_tag = False
 
     person_tag = True
     try:
         person = int(person)
+        if person <= 0:
+            person_tag = False
     except:
         person_tag = False
 
@@ -77,7 +93,7 @@ def hotels():
     elif re.search(r'[\dA-Za-z%_&\-~@#$^*(){}|\[\]?><.=+;:"]+', dest):
         dest_tag = False
 
-    if count and person_tag and date_tag and dest_tag and page_tol >= int(page):
+    if count and person_tag and date_tag and dest_tag and page_tag:
         cursor.execute(
             f"SELECT * FROM hotels WHERE address like '%{dest}%' ORDER BY id LIMIT {(int(page) - 1) * 15},15")
         hotel_data = cursor.fetchall()
@@ -146,8 +162,6 @@ def hotels():
                 price_dt[p['hotel_id']] = {}
                 price_dt[p['hotel_id']][p['resource']] = (format(int(p['price'] / p['count']), ','), p['url'])
     else:
-        che_in = datetime.datetime.strptime(checkin, "%Y-%m-%d")
-        che_out = datetime.datetime.strptime(checkout, "%Y-%m-%d")
         hotel_data = ''
         image_dt = ''
         price_dt = ''
@@ -157,15 +171,17 @@ def hotels():
             msg = "請您輸入入住日期"
         elif checkout == '':
             msg = "請您輸入退房日期"
-        elif checkout < checkin:
-            msg = "請您輸入有效日期"
-        elif (che_out - che_in).days > 30:
+        elif not date_limit:
             msg = "很抱歉，RestfulTrip 僅提供30天即時價格"
+        elif not date_tag:
+            msg = "請您輸入有效日期"
         elif person == '':
             msg = "請您輸入人數"
-        elif type(person) is not int:
+        elif type(person) is not int or person <= 0:
             msg = "請您輸入有效人數"
-        elif 0 < page_tol < int(page):
+        elif type(page) is not int:
+            msg = '很抱歉，無法獲取該頁資訊'
+        elif 0 < page_tol < page or page <= 0:
             msg = '很抱歉，無法獲取該頁資訊'
         else:
             msg = f"很抱歉，我們找不到 '{dest}'"
