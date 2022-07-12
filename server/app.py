@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request
 from config.mysql_config import *
 from dotenv import load_dotenv
-import os
+from math import ceil
 import datetime
+import os
+import re
 
 
 load_dotenv()
@@ -19,6 +21,7 @@ def main():
 
 @app.route('/hotels')
 def hotels():
+    MyDb = pool.get_conn()
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
     dest = request.args.get("dest")
@@ -26,11 +29,17 @@ def hotels():
     checkout = request.args.get("checkout")
     person = request.args.get("person")
     page = request.args.get("page")
-
+    date_tag = True
+    if checkin != '' and checkout != '':
+        che_in = datetime.datetime.strptime(checkin, "%Y-%m-%d")
+        che_out = datetime.datetime.strptime(checkout, "%Y-%m-%d")
+        if (che_out - che_in).days > 30:
+            date_tag = False
     cursor.execute(f"SELECT count(*) AS count FROM hotels WHERE address LIKE '%{dest}%'")
     count = cursor.fetchone()['count']
     MyDb.commit()
     msg = f'為您搜出 {count} 間旅館'
+    page_tol = ceil(count/15)
     user_send = {
         'dest': dest,
         'checkin': checkin,
@@ -43,7 +52,8 @@ def hotels():
         person = int(person)
     except ValueError:
         person = 'wrong'
-    if count and checkout >= checkin and dest and person != 'wrong':
+    if count and checkout >= checkin and dest and person != 'wrong' and date_tag and\
+            checkin and checkout and not re.search(r'[\dA-Za-z]+', dest):
         cursor.execute(
             f"SELECT * FROM hotels WHERE address like '%{dest}%' ORDER BY id LIMIT {(int(page) - 1) * 15},15")
         hotel_data = cursor.fetchall()
@@ -119,19 +129,24 @@ def hotels():
             msg = "請您輸入退房日期"
         elif checkout < checkin:
             msg = "請您輸入有效日期"
+        elif not date_tag:
+            msg = "很抱歉，RestfulTrip 僅提供30天即時價格"
         elif person == '':
             msg = "請您輸入人數"
         elif type(person) is not int:
             msg = "請您輸入有效人數"
         else:
-            msg = f"抱歉找不到 '{dest}'"
+            msg = f"很抱歉，我們找不到 '{dest}'"
+
+    pool.release(MyDb)
     return render_template('hotel.html',
                            hotel_data=hotel_data,
                            image_data=image_dt,
                            price=price_dt,
                            msg=msg,
                            user_send=user_send,
-                           page=page)
+                           page=page,
+                           page_tol=page_tol)
 
 
 if __name__ == '__main__':

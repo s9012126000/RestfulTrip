@@ -29,7 +29,8 @@ class Worker(threading.Thread):
                         print(f'attempt {i} fail')
                         if i == 4:
                             with open('logs/hotels/agoda_lost_region.log', 'a') as e:
-                                e.write(region, '\n')
+                                msg = region + '\n'
+                                e.write(msg)
                             print(f"lost region")
             self.get_hotels()
             
@@ -113,9 +114,12 @@ class Worker(threading.Thread):
 
                 def fetching():
                     wait = WebDriverWait(self.driver, 5)
-                    name = wait.until(
-                        ec.presence_of_element_located((By.XPATH, "//h1[@data-selenium='hotel-header-name']"))
-                    ).text
+                    try:
+                        name = wait.until(
+                            ec.presence_of_element_located((By.XPATH, "//h1[@data-selenium='hotel-header-name']"))
+                        ).text
+                    except TimeoutException:
+                        raise StaleElementReferenceException
                     address = wait.until(
                         ec.presence_of_element_located((By.XPATH, "//span[@data-selenium='hotel-address-map']"))
                     ).text
@@ -130,7 +134,7 @@ class Worker(threading.Thread):
                         img = wait.until(
                             ec.presence_of_element_located((By.ID, 'PropertyMosaic'))
                         ).find_element(By.TAG_NAME, 'img').get_attribute('src')
-                    except TimeoutException:
+                    except (TimeoutException, NoSuchElementException):
                         img = "non-provided"
                     try:
                         des = wait.until(
@@ -170,8 +174,8 @@ class Worker(threading.Thread):
                             print(f'attempt {j} fail')
                             if j == 4:
                                 with open('logs/hotels/agoda_lost_data.log', 'a') as e:
-                                    lnk = self.driver.current_url
-                                    e.write(lnk, '\n')
+                                    lnk = self.driver.current_url + '\n'
+                                    e.write(lnk)
                                 print(f"lost data")
                 self.driver.close()
                 self.driver.switch_to.window(self.driver.window_handles[0])
@@ -194,8 +198,8 @@ class Worker(threading.Thread):
 
 
 if __name__ == '__main__':
-    START_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"agoda started at {START_TIME}")
+    START_TIME = datetime.datetime.now()
+    print(f"agoda started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
     with open('jsons/divisions.json') as d:
         divisions = json.load(d)
     ext = ['花蓮市', '台東市', '宜蘭市', '台南縣', '墾丁']
@@ -207,7 +211,7 @@ if __name__ == '__main__':
     worker_count = 3 
     for i in range(worker_count):
         num = i+1
-        driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+        driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
         driver.delete_all_cookies()
         worker = Worker(num, driver)
         workers.append(worker)
@@ -216,6 +220,10 @@ if __name__ == '__main__':
         worker.start()
     for worker in workers:
         worker.join()
-    END_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"agoda started at {START_TIME}")
-    print(f"agoda finished at {END_TIME}")
+        worker.driver.quit()
+        print(f'{worker.worker_num} done')
+
+    END_TIME = datetime.datetime.now()
+    print(f"agoda started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"agoda finished at {END_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"agoda cost {(END_TIME-START_TIME).seconds//60} minutes")
