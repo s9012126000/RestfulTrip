@@ -16,7 +16,7 @@ def replace_all(text, dt):
 
 def get_thirty_dates():
     date_ls = []
-    for d in range(30):
+    for d in range(14):
         date = (datetime.datetime.now().date() + datetime.timedelta(days=d))
         date_ls.append(date)
     return date_ls
@@ -116,7 +116,7 @@ if __name__ == '__main__':
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
     cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 3 ORDER BY hotel_id')
-    urls = cursor.fetchall()[0:8]
+    urls = cursor.fetchall()
     MyDb.commit()
     pool.release(MyDb)
 
