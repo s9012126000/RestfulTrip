@@ -1,24 +1,17 @@
 from crawler_config import *
 from mysql_config import *
-from pprint import pprint
 import datetime
 import functools
 import threading
-import logging
 import json
 import time
 import pika
-import sys
 import re
 import os
 
 db = pool.get_conn()
-# LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
-#               '-35s %(lineno) -5d: %(message)s')
-# LOGGER = logging.getLogger(__name__)
-# logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
-
 driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
+driver.execute_cdp_cmd("Network.setCacheDisabled", {"cacheDisabled": True})
 credentials = pika.credentials.PlainCredentials(
     username=os.getenv('rbt_user'),
     password=os.getenv('rbt_pwd')
@@ -34,7 +27,7 @@ conn_param = pika.ConnectionParameters(
 conn = pika.BlockingConnection(conn_param)
 channel = conn.channel()
 channel.exchange_declare(exchange="test_exchange", exchange_type="direct", passive=False, durable=True, auto_delete=False)
-channel.queue_declare(queue="hotels")
+channel.queue_declare(queue="hotels", durable=True)
 channel.queue_bind(queue="hotels", exchange="test_exchange", routing_key="que")
 channel.basic_qos(prefetch_count=1)
 
@@ -60,6 +53,7 @@ def get_hotel_price(link):
     price_ls = []
     empty_date = []
     for date in date_ls:
+        driver.delete_all_cookies()
         checkin = date
         checkout = date + datetime.timedelta(days=1)
         replaces = {
@@ -101,7 +95,7 @@ def get_hotel_price(link):
                 'resource_id': uid,
                 'person': person}
                 for person, price in price_dict.items()]
-            pprint(price_pack)
+            print(f'receive {uid} price at {date}')
             price_ls.extend(price_pack)
         except TimeoutException:
             print(f"{uid} is empty at {date}")
@@ -110,7 +104,6 @@ def get_hotel_price(link):
         'date': empty_date,
         'resource_id': uid
     }
-    pprint(empty_pack)
     return price_ls, empty_pack
 
 
@@ -143,30 +136,19 @@ def on_message(channel, method_frame, header_frame, body, args):
     threads.append(t)
 
 
-threads = []
-on_message_callback = functools.partial(on_message, args=(conn, threads))
-channel.basic_consume(queue='hotels',
-                      auto_ack=False,
-                      on_message_callback=on_message_callback)
-try:
+if __name__ == '__main__':
+    threads = []
+    on_message_callback = functools.partial(on_message, args=(conn, threads))
+    channel.basic_consume(queue='hotels',
+                          auto_ack=False,
+                          on_message_callback=on_message_callback)
+    try:
+        channel.start_consuming()
+    except KeyboardInterrupt:
+        channel.stop_consuming()
 
-    channel.start_consuming()
-except KeyboardInterrupt:
-    channel.stop_consuming()
+    for thread in threads:
+        thread.join()
 
-# Wait for all to complete
-for thread in threads:
-    thread.join()
-
-pool.release(db)
-conn.close()
-
-# if __name__ == '__main__':
-#     try:
-#         main()
-#     except KeyboardInterrupt:
-#         print('Interrupted')
-#         try:
-#             sys.exit(0)
-#         except SystemExit:
-#             os._exit(0)
+    pool.release(db)
+    conn.close()

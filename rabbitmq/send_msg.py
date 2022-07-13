@@ -32,7 +32,7 @@ def fetching_hotels(resource):
 
 
 def sending_queue(urls, que):
-    channel.queue_declare(queue=que)
+    channel.queue_declare(queue=que, durable=True)
     for url in urls:
         msg = json.dumps(url).encode('UTF-8')
         channel.basic_publish(exchange='',
