@@ -11,7 +11,7 @@ conn_param = pika.ConnectionParameters(
     host=os.getenv('rbt_host'),
     port=5672,
     credentials=credentials,
-    heartbeat=0,
+    heartbeat=5,
     connection_attempts=5,
     locale='zh-TW'
 )
