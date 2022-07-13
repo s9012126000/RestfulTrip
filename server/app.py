@@ -12,54 +12,98 @@ app = Flask(__name__)
 app.secret_key = os.getenv('secret_key')
 app.config['JSON_AS_ASCII'] = False
 DEBUG, PORT, HOST = True, 8080, '0.0.0.0'
+MyDb = pool.get_conn()
 
 
 @app.route('/')
 def main():
-    return render_template('index.html')
+    checkin = datetime.datetime.now().date().isoformat()
+    checkin_limit = (datetime.datetime.now() + datetime.timedelta(days=30)).date().isoformat()
+    checkout = (datetime.datetime.now() + datetime.timedelta(days=1)).date().isoformat()
+    checkout_limit = (datetime.datetime.now() + datetime.timedelta(days=31)).date().isoformat()
+    return render_template('index.html',
+                           checkin=checkin,
+                           checkin_limit=checkin_limit,
+                           checkout=checkout,
+                           checkout_limit=checkout_limit)
 
 
 @app.route('/hotels')
 def hotels():
-    MyDb = pool.get_conn()
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
     dest = request.args.get("dest")
+    dest = dest.strip()
+    dest = dest.strip("'")
     checkin = request.args.get("checkin")
     checkout = request.args.get("checkout")
     person = request.args.get("person")
     page = request.args.get("page")
-    date_tag = True
-    if checkin != '' and checkout != '':
-        che_in = datetime.datetime.strptime(checkin, "%Y-%m-%d")
-        che_out = datetime.datetime.strptime(checkout, "%Y-%m-%d")
-        if (che_out - che_in).days > 30:
-            date_tag = False
-    cursor.execute(f"SELECT count(*) AS count FROM hotels WHERE address LIKE '%{dest}%'")
-    count = cursor.fetchone()['count']
-    MyDb.commit()
-    msg = f'為您搜出 {count} 間旅館'
-    page_tol = ceil(count/15)
     user_send = {
         'dest': dest,
         'checkin': checkin,
         'checkout': checkout,
         'person': person
     }
-    if page is None:
+
+    cursor.execute(f"SELECT count(*) AS count FROM hotels WHERE address LIKE '%{dest}%'")
+    count = cursor.fetchone()['count']
+    MyDb.commit()
+    msg = f'為您搜出 {count} 間旅館'
+    page_tol = ceil(count/15)
+    if page is None or page == '':
         page = 1
+    page_tag = True
+    try:
+        page = int(page)
+        if page_tol < page or page <= 0:
+            page_tag = False
+    except:
+        page_tag = False
+
+    date_limit = True
+    date_tag = True
+    try:
+        if checkin != '' and checkout != '':
+            che_in = datetime.datetime.strptime(checkin, "%Y-%m-%d")
+            che_out = datetime.datetime.strptime(checkout, "%Y-%m-%d")
+            if che_out < che_in:
+                date_tag = False
+            elif che_in.date() < datetime.datetime.now().date():
+                date_tag = False
+            elif (che_out - che_in).days > 30:
+                date_tag = False
+                date_limit = False
+        else:
+            date_tag = False
+    except ValueError:
+        date_tag = False
+
+    person_tag = True
     try:
         person = int(person)
-    except ValueError:
-        person = 'wrong'
-    if count and checkout >= checkin and dest and person != 'wrong' and date_tag and\
-            checkin and checkout and not re.search(r'[\dA-Za-z]+', dest):
+        if person <= 0:
+            person_tag = False
+    except:
+        person_tag = False
+
+    dest_tag = True
+    if dest == '':
+        dest_tag = False
+    elif re.search(r'[\dA-Za-z%_&\-~@#$^*(){}|\[\]?><.=+;:"]+', dest):
+        dest_tag = False
+
+    if count and person_tag and date_tag and dest_tag and page_tag:
         cursor.execute(
             f"SELECT * FROM hotels WHERE address like '%{dest}%' ORDER BY id LIMIT {(int(page) - 1) * 15},15")
         hotel_data = cursor.fetchall()
         MyDb.commit()
         hid = [x['id'] for x in hotel_data]
-        cursor.execute(f'select hotel_id, image from images where hotel_id in {tuple(hid)}')
+        hid = tuple(hid)
+        if len(hid) == 1:
+            hid = f'({hid[0]})'
+
+        cursor.execute(f'select hotel_id, image from images where hotel_id in {hid}')
         image_data = cursor.fetchall()
         MyDb.commit()
         image_dt = {}
@@ -127,18 +171,25 @@ def hotels():
             msg = "請您輸入入住日期"
         elif checkout == '':
             msg = "請您輸入退房日期"
-        elif checkout < checkin:
-            msg = "請您輸入有效日期"
-        elif not date_tag:
+        elif not date_limit:
             msg = "很抱歉，RestfulTrip 僅提供30天即時價格"
+        elif not date_tag:
+            msg = "請您輸入有效日期"
         elif person == '':
             msg = "請您輸入人數"
-        elif type(person) is not int:
+        elif type(person) is not int or person <= 0:
             msg = "請您輸入有效人數"
+        elif type(page) is not int:
+            msg = '很抱歉，無法獲取該頁資訊'
+        elif 0 < page_tol < page or page <= 0:
+            msg = '很抱歉，無法獲取該頁資訊'
         else:
             msg = f"很抱歉，我們找不到 '{dest}'"
 
-    pool.release(MyDb)
+    checkin = datetime.datetime.now().date().isoformat()
+    checkin_limit = (datetime.datetime.now() + datetime.timedelta(days=30)).date().isoformat()
+    checkout = (datetime.datetime.now() + datetime.timedelta(days=1)).date().isoformat()
+    checkout_limit = (datetime.datetime.now() + datetime.timedelta(days=31)).date().isoformat()
     return render_template('hotel.html',
                            hotel_data=hotel_data,
                            image_data=image_dt,
@@ -146,7 +197,12 @@ def hotels():
                            msg=msg,
                            user_send=user_send,
                            page=page,
-                           page_tol=page_tol)
+                           page_tol=page_tol,
+                           checkin=checkin,
+                           checkin_limit=checkin_limit,
+                           checkout=checkout,
+                           checkout_limit=checkout_limit
+                           )
 
 
 if __name__ == '__main__':
