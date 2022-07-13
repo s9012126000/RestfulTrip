@@ -134,6 +134,7 @@ if __name__ == '__main__':
                 })
             """
         })
+        driver.execute_cdp_cmd("Network.setCacheDisabled", {"cacheDisabled": True})
         worker = Worker(num, driver)
         workers.append(worker)
 
