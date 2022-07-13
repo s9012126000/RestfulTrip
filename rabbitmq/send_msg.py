@@ -10,7 +10,10 @@ credentials = pika.credentials.PlainCredentials(
 conn_param = pika.ConnectionParameters(
     host=os.getenv('rbt_host'),
     port=5672,
-    credentials=credentials
+    credentials=credentials,
+    heartbeat=0,
+    connection_attempts=5,
+    locale='zh-TW'
 )
 
 conn = pika.BlockingConnection(conn_param)
@@ -22,7 +25,7 @@ def fetching_hotels(resource):
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
     cursor.execute(f'SELECT id, url, hotel_id  FROM resources WHERE resource = {resource} ORDER BY hotel_id')
-    urls = cursor.fetchall()[0:10]
+    urls = cursor.fetchall()
     MyDb.commit()
     pool.release(MyDb)
     return urls

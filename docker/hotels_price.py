@@ -18,7 +18,10 @@ credentials = pika.credentials.PlainCredentials(
 conn_param = pika.ConnectionParameters(
     host=os.getenv('rbt_host'),
     port=5672,
-    credentials=credentials
+    credentials=credentials,
+    heartbeat=0,
+    connection_attempts=5,
+    locale='zh-TW'
 )
 conn = pika.BlockingConnection(conn_param)
 channel = conn.channel()
@@ -34,7 +37,7 @@ def main():
 
     def get_thirty_dates():
         date_ls = []
-        for d in range(7):
+        for d in range(14):
             date = (datetime.datetime.now().date() + datetime.timedelta(days=d))
             date_ls.append(date)
         return date_ls
@@ -51,6 +54,7 @@ def main():
         if empty['date']:
             empty_to_sql(empty, db)
         print(f"hotel {url['hotel_id']}: done")
+        ch.basic_ack(delivery_tag=method.delivery_tag)
 
     def get_hotel_price(link):
         date_ls = get_thirty_dates()
@@ -113,7 +117,7 @@ def main():
         return price_ls, empty_pack
 
     channel.basic_consume(queue='hotels',
-                          auto_ack=True,
+                          auto_ack=False,
                           on_message_callback=callback)
     print(' [*] Waiting for messages. To exit press CTRL+C')
     channel.start_consuming()
