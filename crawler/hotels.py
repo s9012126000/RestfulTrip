@@ -66,14 +66,7 @@ class Worker(threading.Thread):
             try:
                 pack = self.fetch(c)
             except:
-                try:
-                    self.driver.refresh()
-                    self.driver.close()
-                    self.driver.switch_to.window(self.driver.window_handles[0])
-                    self.driver.refresh()
-                    pack = self.fetch(c)
-                except:
-                    continue
+                continue
             hotel_ls.append(pack)
         col.insert_many(hotel_ls, bypass_document_validation=True)
         print(f'{div}: done at {time.perf_counter()}')
@@ -122,7 +115,7 @@ if __name__ == '__main__':
         job_queue.put(job_index)
 
     workers = []
-    worker_count = 4
+    worker_count = 2
     for i in range(worker_count):
         num = i+1
         driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
