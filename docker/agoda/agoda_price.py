@@ -9,7 +9,6 @@ import pika
 import re
 import os
 
-driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
 credentials = pika.credentials.PlainCredentials(
     username=os.getenv('rbt_user'),
     password=os.getenv('rbt_pwd')

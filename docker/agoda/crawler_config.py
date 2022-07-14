@@ -41,8 +41,8 @@ options.add_argument("-–disable-blink-features=AutomationControlled")
 options.add_argument('--disable-dev-shm-usage')
 options.add_argument("--disable-application-cache")
 options.add_argument("--disk-cache-size=0")
-# options.binary_location = '/usr/bin/google-chrome-beta'
-options.binary_location = '/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta'
+options.binary_location = '/usr/bin/google-chrome-beta'
+# options.binary_location = '/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta'
 
 headers = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
