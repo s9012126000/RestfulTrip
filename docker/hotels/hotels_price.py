@@ -9,9 +9,6 @@ import pika
 import re
 import os
 
-db = pool.get_conn()
-driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
-driver.execute_cdp_cmd("Network.setCacheDisabled", {"cacheDisabled": True})
 credentials = pika.credentials.PlainCredentials(
     username=os.getenv('rbt_user'),
     password=os.getenv('rbt_pwd')
@@ -29,7 +26,7 @@ channel = conn.channel()
 channel.exchange_declare(exchange="test_exchange", exchange_type="direct", passive=False, durable=True, auto_delete=False)
 channel.queue_declare(queue="hotels", durable=True)
 channel.queue_bind(queue="hotels", exchange="test_exchange", routing_key="que")
-channel.basic_qos(prefetch_count=1)
+channel.basic_qos(prefetch_count=4)
 
 
 def replace_all(text, dt):
@@ -40,13 +37,13 @@ def replace_all(text, dt):
 
 def get_dates():
     date_ls = []
-    for d in range(14):
+    for d in range(7):
         date = (datetime.datetime.now().date() + datetime.timedelta(days=d))
         date_ls.append(date)
     return date_ls
 
 
-def get_hotel_price(link):
+def get_hotel_price(link, driver):
     date_ls = get_dates()
     uid = link['id']
     url = link['url']
@@ -112,10 +109,11 @@ def ack_message(channel, delivery_tag):
         channel.basic_ack(delivery_tag)
 
 
-def do_work(connection, channel, delivery_tag, body):
+def do_work(connection, channel, delivery_tag, body, driver):
+    db = pool.get_conn()
     db.ping(reconnect=True)
     url = json.loads(body.decode('UTF-8'))
-    prices, empty = get_hotel_price(url)
+    prices, empty = get_hotel_price(url, driver)
     if prices:
         price_to_sql(prices, db)
         print(f"insert {url['hotel_id']} successfully")
@@ -126,12 +124,16 @@ def do_work(connection, channel, delivery_tag, body):
     print(f"hotel {url['hotel_id']}: done")
     cb = functools.partial(ack_message, channel, delivery_tag)
     connection.add_callback_threadsafe(cb)
+    driver.quit()
+    pool.release(db)
 
 
 def on_message(channel, method_frame, header_frame, body, args):
     (connection, threads) = args
     delivery_tag = method_frame.delivery_tag
-    t = threading.Thread(target=do_work, args=(connection, channel, delivery_tag, body))
+    driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
+    driver.execute_cdp_cmd("Network.setCacheDisabled", {"cacheDisabled": True})
+    t = threading.Thread(target=do_work, args=(connection, channel, delivery_tag, body, driver))
     t.start()
     threads.append(t)
 
@@ -150,5 +152,4 @@ if __name__ == '__main__':
     for thread in threads:
         thread.join()
 
-    pool.release(db)
     conn.close()

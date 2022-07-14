@@ -29,9 +29,7 @@ options.add_argument('--headless')
 options.add_argument('--disable-gpu')
 options.add_argument('--no-sandbox')
 options.add_argument("–-Referer=https://www.facebook.com")
-options.add_argument('--user-data-dir=tmp/user-data')
 options.add_argument('--hide-scrollbars')
-options.add_argument('--enable-logging')
 options.add_argument('--log-level=0')
 options.add_argument('--ignore-certificate-errors')
 options.add_argument("--content-type=text/plain")
@@ -43,10 +41,8 @@ options.add_argument("-–disable-blink-features=AutomationControlled")
 options.add_argument('--disable-dev-shm-usage')
 options.add_argument("--disable-application-cache")
 options.add_argument("--disk-cache-size=0")
-options.add_argument('--data-path=tmp/data-path')
-options.add_argument('--disk-cache-dir=tmp/cache-dir')
-options.binary_location = '/usr/bin/google-chrome-beta'
-# options.binary_location = '/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta'
+# options.binary_location = '/usr/bin/google-chrome-beta'
+options.binary_location = '/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta'
 
 headers = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
@@ -58,4 +54,9 @@ headers = {
     "Upgrade-Insecure-Requests": "1",
     "User-Agent": user_agent
 }
+
+# options.add_argument('--enable-logging')
+# options.add_argument('--data-path=tmp/data-path')
+# options.add_argument('--disk-cache-dir=tmp/cache-dir')
+# options.add_argument('--user-data-dir=tmp/user-data')
 

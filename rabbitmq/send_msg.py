@@ -38,7 +38,6 @@ def sending_queue(urls, que):
         channel.basic_publish(exchange='',
                               routing_key=que,
                               body=msg)
-    conn.close()
 
 
 if __name__ == '__main__':
@@ -48,4 +47,5 @@ if __name__ == '__main__':
     sending_queue(hotels, 'hotels')
     # sending_queue(booking, 'booking')
     # sending_queue(agoda, 'agoda')
+    conn.close()
     os._exit(0)
