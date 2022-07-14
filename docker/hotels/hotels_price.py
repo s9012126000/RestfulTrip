@@ -37,7 +37,7 @@ def replace_all(text, dt):
 
 def get_dates():
     date_ls = []
-    for d in range(7):
+    for d in range(14):
         date = (datetime.datetime.now().date() + datetime.timedelta(days=d))
         date_ls.append(date)
     return date_ls
