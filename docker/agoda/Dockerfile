@@ -9,4 +9,4 @@ RUN wget -q https://dl.google.com/linux/direct/google-chrome-beta_current_amd64.
 RUN dpkg --unpack ./google-chrome-beta_current_amd64.deb
 RUN apt-get install -f -y
 COPY . .
-CMD [ "python3", "hotels_price.py"]
+CMD [ "python3", "-u", "agoda_price.py"]

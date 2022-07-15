@@ -55,3 +55,8 @@ headers = {
     "User-Agent": user_agent
 }
 
+# options.add_argument('--enable-logging')
+# options.add_argument('--data-path=tmp/data-path')
+# options.add_argument('--disk-cache-dir=tmp/cache-dir')
+# options.add_argument('--user-data-dir=tmp/user-data')
+

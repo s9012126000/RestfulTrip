@@ -10,7 +10,10 @@ credentials = pika.credentials.PlainCredentials(
 conn_param = pika.ConnectionParameters(
     host=os.getenv('rbt_host'),
     port=5672,
-    credentials=credentials
+    credentials=credentials,
+    heartbeat=5,
+    connection_attempts=5,
+    locale='zh-TW'
 )
 
 conn = pika.BlockingConnection(conn_param)
@@ -22,20 +25,19 @@ def fetching_hotels(resource):
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
     cursor.execute(f'SELECT id, url, hotel_id  FROM resources WHERE resource = {resource} ORDER BY hotel_id')
-    urls = cursor.fetchall()[0:10]
+    urls = cursor.fetchall()
     MyDb.commit()
     pool.release(MyDb)
     return urls
 
 
 def sending_queue(urls, que):
-    channel.queue_declare(queue=que)
+    channel.queue_declare(queue=que, durable=True)
     for url in urls:
         msg = json.dumps(url).encode('UTF-8')
         channel.basic_publish(exchange='',
                               routing_key=que,
                               body=msg)
-    conn.close()
 
 
 if __name__ == '__main__':
@@ -45,4 +47,5 @@ if __name__ == '__main__':
     sending_queue(hotels, 'hotels')
     # sending_queue(booking, 'booking')
     # sending_queue(agoda, 'agoda')
+    conn.close()
     os._exit(0)

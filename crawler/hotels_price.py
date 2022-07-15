@@ -17,7 +17,7 @@ def replace_all(text, dt):
 
 def get_thirty_dates():
     date_ls = []
-    for d in range(30):
+    for d in range(14):
         date = (datetime.datetime.now().date() + datetime.timedelta(days=d))
         date_ls.append(date)
     return date_ls
@@ -112,7 +112,7 @@ if __name__ == '__main__':
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
     cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 1 ORDER BY hotel_id')
-    urls = cursor.fetchall()[0:10]
+    urls = cursor.fetchall()
     MyDb.commit()
     pool.release(MyDb)
 
@@ -121,11 +121,12 @@ if __name__ == '__main__':
         job_queue.put(job)
 
     workers = []
-    worker_count = 5
+    worker_count = 4
     for i in range(worker_count):
         MyDb = pool.get_conn()
         num = i + 1
         driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
+        driver.execute_cdp_cmd("Network.setCacheDisabled", {"cacheDisabled": True})
         driver.delete_all_cookies()
         worker = Worker(num, driver, MyDb)
         workers.append(worker)

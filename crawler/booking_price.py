@@ -4,13 +4,12 @@ from pprint import pprint
 import datetime
 import threading
 import queue
-import time
 import re
 
 
 def get_thirty_dates():
     date_ls = []
-    for d in range(30):
+    for d in range(14):
         date = (datetime.datetime.now().date() + datetime.timedelta(days=d))
         date_ls.append(date)
     return date_ls
@@ -98,6 +97,7 @@ class Worker(threading.Thread):
         pprint(empty_pack)
         return price_ls, empty_pack
 
+
 if __name__ == '__main__':
     MyDb = pool.get_conn()
     START_TIME = datetime.datetime.now()
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
     cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 2 ORDER BY hotel_id')
-    urls = cursor.fetchall()[0:20]
+    urls = cursor.fetchall()
     MyDb.commit()
     pool.release(MyDb)
 

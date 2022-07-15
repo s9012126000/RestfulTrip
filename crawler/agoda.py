@@ -212,6 +212,7 @@ if __name__ == '__main__':
     for i in range(worker_count):
         num = i+1
         driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
+        driver.execute_cdp_cmd("Network.setCacheDisabled", {"cacheDisabled": True})
         driver.delete_all_cookies()
         worker = Worker(num, driver)
         workers.append(worker)
