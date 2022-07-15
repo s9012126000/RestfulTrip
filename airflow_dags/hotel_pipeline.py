@@ -1,6 +1,4 @@
 from airflow.operators.bash import BashOperator
-from airflow.operators.python import PythonOperator
-from crawler.booking import get_region_url
 from airflow import DAG
 import datetime
 import pendulum
@@ -40,14 +38,6 @@ with DAG(
         dag=dag
     )
 
-    get_booking_region = PythonOperator(
-        task_id='get_booking_region',
-        python_callable=get_region_url,
-        op_kwargs={"path":PATH},
-        do_xcom_push=False,
-        dag=dag
-    )
-
     booking_crawler = BashOperator(
         task_id='booking_crawler',
         bash_command=f"cd {PATH}/crawler/ && python3 booking.py",
@@ -69,4 +59,4 @@ with DAG(
         dag=dag
     )
 
-    store_last_data >> hotels_crawler >> get_booking_region >> [booking_crawler, agoda_crawler] >> data_clean
+    store_last_data >> hotels_crawler >> booking_crawler, agoda_crawler >> data_clean

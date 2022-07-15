@@ -37,11 +37,9 @@ class Worker(threading.Thread):
                 if check > last_len:
                     last_len = check
                 elif check == last_len:
-                    print(f"{self.worker_num}", check)
                     break
             cards = self.driver.find_elements(
                 By.XPATH, "//section[@class='results']/ol/li/div/a[@data-stid='open-hotel-information']")
-            print(f'{self.worker_num} scan_done')
             return cards
         try:
             cards = get_cards()
@@ -61,18 +59,23 @@ class Worker(threading.Thread):
                         print(f'{self.worker_num} scan_done')
                         with open('logs/hotels/hotels_lost_data.log', 'a') as e:
                             e.write('url:\n' + str(URL) + '\n')
+        cards = [x.get_attribute('href') for x in cards]
+        print(f"worker {self.worker_num}: <<{div}>> {len(cards)} cards \n-------------------------------")
         hotel_ls = []
-        for c in cards:
+        for c in range(len(cards)):
             try:
-                pack = self.fetch(c)
+                pack = self.fetch(cards[c], c)
             except:
                 continue
             hotel_ls.append(pack)
         col.insert_many(hotel_ls, bypass_document_validation=True)
-        print(f'{div}: done at {time.perf_counter()}')
 
-    def fetch(self, c):
-        c.click()
+    def fetch(self, url, n):
+        self.driver.execute_script("window.open()")
+        WebDriverWait(self.driver, 10).until(ec.number_of_windows_to_be(2))
+        self.driver.switch_to.window(self.driver.window_handles[1])
+        self.driver.get(url)
+        time.sleep(1)
         self.driver.switch_to.window(self.driver.window_handles[1])
         detail_elm = WebDriverWait(self.driver, 60).until(
             ec.presence_of_element_located((By.XPATH, "//div[@data-stid='content-hotel-title']"))
@@ -99,7 +102,8 @@ class Worker(threading.Thread):
             'address': address,
             'img': img
         }
-        print(f"{detail} success", '\n')
+        name = detail.split('\n')[0]
+        print(f"worker {self.worker_num}: {n} {name}")
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[0])
         return pack
@@ -115,7 +119,7 @@ if __name__ == '__main__':
         job_queue.put(job_index)
 
     workers = []
-    worker_count = 2
+    worker_count = 4
     for i in range(worker_count):
         num = i+1
         driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
