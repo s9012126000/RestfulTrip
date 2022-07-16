@@ -22,17 +22,17 @@ class Worker(threading.Thread):
                 for i in range(5):
                     try:
                         self.driver.refresh()
-                        print(f'form filled attempt {i}')
+                        print(f'worker {self.worker_num}: form filled attempt {i}')
                         self.get_region_hotels(region)
                         break
                     except ElementClickInterceptedException:
-                        print(f'attempt {i} fail')
+                        print(f'worker {self.worker_num}: attempt {i} fail')
                         if i == 4:
                             with open('logs/hotels/agoda_lost_region.log', 'a') as e:
                                 msg = region + '\n'
                                 e.write(msg)
                             print(f"lost region")
-            self.get_hotels()
+            self.get_hotels(region)
             
     def get_region_hotels(self, div):
         url = 'https://www.agoda.com/zh-tw/'
@@ -48,7 +48,7 @@ class Worker(threading.Thread):
         time.sleep(1)
         self.driver.find_element(By.XPATH, "//li[@data-selenium='allRoomsTab']").click()
         time.sleep(1)
-        print(f'form {self.worker_num} filled')
+        print(f'worker {self.worker_num}: form filled')
         self.driver.find_element(By.XPATH, "//button[@data-selenium='searchButton']").click()
         try:
             WebDriverWait(self.driver, 10).until(
@@ -57,7 +57,7 @@ class Worker(threading.Thread):
         except TimeoutException:
             pass
 
-    def get_hotels(self):
+    def get_hotels(self, div):
         col = client['personal_project']['agoda']
         while True:
             def get_cards():
@@ -66,7 +66,7 @@ class Worker(threading.Thread):
                     ec.presence_of_all_elements_located((By.XPATH, "//a[@class='PropertyCard__Link']"))
                 )
                 card = [x.get_attribute('href') for x in card if x.get_attribute('href') is not None]
-                print(f'hotel cards per page: {len(card)}')
+                print(f'worker {self.worker_num}: <<{div}>> get {len(card)} cards')
                 return card
             try:
                 cards = get_cards()
@@ -93,12 +93,12 @@ class Worker(threading.Thread):
                 print('end of this pages')
                 break            
             hotel_ls = []
-            for c in cards:
+            for c in range(len(cards)):
                 def open_window():
                     self.driver.execute_script("window.open()")
                     WebDriverWait(self.driver, 10).until(ec.number_of_windows_to_be(2))
                     self.driver.switch_to.window(self.driver.window_handles[1])
-                    self.driver.get(c)
+                    self.driver.get(cards[c])
                     time.sleep(1)
                 try:
                     open_window()
@@ -160,7 +160,7 @@ class Worker(threading.Thread):
                     if any(val == '' for val in pack.values()):
                         raise StaleElementReferenceException
                     hotel_ls.append(pack)
-                    print(f'{name}: success')
+                    print(f'worker {self.worker_num}: {c} {name} success')
                 try:
                     fetching()
                 except StaleElementReferenceException:

@@ -74,12 +74,16 @@ def dt_to_sql(table, ls, db):
 
 
 def price_to_sql(ls, db):
+    db.ping(reconnect=True)
+    cursor = db.cursor()
+    resource_id = ls[0]['resource_id']
+    del_sql = f"DELETE FROM price WHERE resource_id = {resource_id}"
+    cursor.execute(del_sql)
+    db.commit()
     keys = list(ls[0].keys())
     columns = ', '.join(keys)
     placeholders = ', '.join(['%s'] * len(ls[0]))
     vals = [tuple(val.values()) for val in ls]
-    db.ping(reconnect=True)
-    cursor = db.cursor()
     sql = f"""
     INSERT INTO price ({columns}) VALUES ({placeholders})
     ON DUPLICATE KEY UPDATE price = VALUES (price)

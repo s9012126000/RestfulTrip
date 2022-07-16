@@ -9,7 +9,6 @@ import re
 import os
 
 
-
 credentials = pika.credentials.PlainCredentials(
     username=os.getenv('rbt_user'),
     password=os.getenv('rbt_pwd')
@@ -54,7 +53,6 @@ def get_booking_price(link):
     uid = link['id']
     url = link['url']
     price_ls = []
-    empty_date = []
     for date in date_ls:
         checkin = date
         checkout = date + datetime.timedelta(days=1)
@@ -98,26 +96,19 @@ def get_booking_price(link):
                 print(f'receive {uid} price at {date}')
             except AttributeError:
                 print(f"{uid} is empty at {date}")
-                empty_date.append(str(date))
-    empty_pack = {
-        'date': empty_date,
-        'resource_id': uid
-    }
-    return price_ls, empty_pack
+    return price_ls
 
 
 def do_work(connection, channel, delivery_tag, body):
     db = pool.get_conn()
     db.ping(reconnect=True)
     url = json.loads(body.decode('UTF-8'))
-    prices, empty = get_booking_price(url)
+    prices = get_booking_price(url)
     if prices:
         price_to_sql(prices, db)
         print(f"insert {url['hotel_id']} successfully")
     else:
         print(f"{url['hotel_id']} is empty")
-    if empty['date']:
-        empty_to_sql(empty, db)
     print(f"hotel {url['hotel_id']}: done")
 
     cb = functools.partial(ack_message, channel, delivery_tag)
