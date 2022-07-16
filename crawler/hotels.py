@@ -22,34 +22,43 @@ class Worker(threading.Thread):
         URL = f'https://tw.hotels.com/Hotel-Search?destination={div}&startDate=2022-10-01&endDate=2022-10-02&rooms=1&adults=1'
         self.driver.get(URL)
         print(f"{self.worker_num}", URL)
+        original_window = driver.current_window_handle
+        action = ActionChains(self.driver)
 
         def get_cards():
             last_len = 0
             while True:
-                self.driver.execute_script("window.scrollTo(0, 50000)")
-                elm = WebDriverWait(self.driver, 5).until(
+
+                self.driver.execute_script("window.scrollTo(0, 500000)")
+                button = WebDriverWait(self.driver, 5).until(
                     ec.element_to_be_clickable((By.XPATH, "//button[@data-stid='show-more-results']"))
                 )
-                time.sleep(1)
-                elm.click()
+                action.move_to_element(button).perform()
+                time.sleep(2)
+                button.click()
                 time.sleep(1)
                 check = len(self.driver.find_elements(By.XPATH, "//section[@class='results']/ol/li"))
                 if check > last_len:
                     last_len = check
                 elif check == last_len:
                     break
-            cards = self.driver.find_elements(
+            card = self.driver.find_elements(
                 By.XPATH, "//section[@class='results']/ol/li/div/a[@data-stid='open-hotel-information']")
-            return cards
+            return card
         try:
             cards = get_cards()
         except:
             cards = self.driver.find_elements(
-                            By.XPATH, "//section[@class='results']/ol/li/div/a[@data-stid='open-hotel-information']")
+                By.XPATH, "//section[@class='results']/ol/li/div/a[@data-stid='open-hotel-information']")
             print(f'division {div} fail')
         cards = [x.get_attribute('href') for x in cards]
         print(f"worker {self.worker_num}: <<{div}>> {len(cards)} cards \n-------------------------------")
         hotel_ls = []
+        print(len(driver.window_handles))
+        while len(driver.window_handles) > 1:
+            self.driver.switch_to.window(self.driver.window_handles[-1])
+            self.driver.close()
+            self.driver.switch_to.window(original_window)
         for c in range(len(cards)):
             try:
                 pack = self.fetch(cards[c], c)
