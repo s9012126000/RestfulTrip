@@ -26,7 +26,7 @@ channel = conn.channel()
 channel.exchange_declare(exchange="test_exchange", exchange_type="direct", passive=False, durable=True, auto_delete=False)
 channel.queue_declare(queue="booking", durable=True)
 channel.queue_bind(queue="booking", exchange="test_exchange", routing_key="que")
-channel.basic_qos(prefetch_count=1)
+channel.basic_qos(prefetch_count=20)
 
 
 def replace_all(text, dt):
@@ -37,7 +37,7 @@ def replace_all(text, dt):
 
 def get_dates():
     date_ls = []
-    for d in range(30):
+    for d in range(14):
         date = (datetime.datetime.now().date() + datetime.timedelta(days=d))
         date_ls.append(date)
     return date_ls
