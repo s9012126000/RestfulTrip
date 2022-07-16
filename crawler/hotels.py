@@ -22,7 +22,6 @@ class Worker(threading.Thread):
         URL = f'https://tw.hotels.com/Hotel-Search?destination={div}&startDate=2022-10-01&endDate=2022-10-02&rooms=1&adults=1'
         self.driver.get(URL)
         print(f"{self.worker_num}", URL)
-        original_window = driver.current_window_handle
         action = ActionChains(self.driver)
 
         def get_cards():
@@ -54,11 +53,11 @@ class Worker(threading.Thread):
         cards = [x.get_attribute('href') for x in cards]
         print(f"worker {self.worker_num}: <<{div}>> {len(cards)} cards \n-------------------------------")
         hotel_ls = []
-        print(len(driver.window_handles))
-        while len(driver.window_handles) > 1:
-            self.driver.switch_to.window(self.driver.window_handles[-1])
+        while len(self.driver.window_handles) > 1:
+            print(f'duplicate window occur: {len(self.driver.window_handles)}')
+            self.driver.switch_to.window(self.driver.window_handles[1])
             self.driver.close()
-            self.driver.switch_to.window(original_window)
+            self.driver.switch_to.window(self.driver.window_handles[0])
         for c in range(len(cards)):
             try:
                 pack = self.fetch(cards[c], c)
