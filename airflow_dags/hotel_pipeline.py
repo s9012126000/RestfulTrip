@@ -59,4 +59,4 @@ with DAG(
         dag=dag
     )
 
-    store_last_data >> hotels_crawler >> booking_crawler >> agoda_crawler >> data_clean
+    store_last_data >> hotels_crawler >> [booking_crawler, agoda_crawler] >> data_clean
