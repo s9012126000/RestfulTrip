@@ -44,21 +44,9 @@ class Worker(threading.Thread):
         try:
             cards = get_cards()
         except:
-            for i in range(5):
-                try:
-                    print(self.worker_num, 'attempt', i+1)
-                    self.driver.refresh()
-                    cards = get_cards()
-                    break
-                except:
-                    print(self.worker_num, 'attempt', i+1, 'fail')
-                    if i == 4:
-                        cards = self.driver.find_elements(
+            cards = self.driver.find_elements(
                             By.XPATH, "//section[@class='results']/ol/li/div/a[@data-stid='open-hotel-information']")
-                        print(f'division {div} fail')
-                        print(f'{self.worker_num} scan_done')
-                        with open('logs/hotels/hotels_lost_data.log', 'a') as e:
-                            e.write('url:\n' + str(URL) + '\n')
+            print(f'division {div} fail')
         cards = [x.get_attribute('href') for x in cards]
         print(f"worker {self.worker_num}: <<{div}>> {len(cards)} cards \n-------------------------------")
         hotel_ls = []
@@ -119,7 +107,7 @@ if __name__ == '__main__':
         job_queue.put(job_index)
 
     workers = []
-    worker_count = 4
+    worker_count = 5
     for i in range(worker_count):
         num = i+1
         driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
