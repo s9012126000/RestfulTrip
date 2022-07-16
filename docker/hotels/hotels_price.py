@@ -48,7 +48,6 @@ def get_hotel_price(link, driver):
     uid = link['id']
     url = link['url']
     price_ls = []
-    empty_date = []
     for date in date_ls:
         driver.delete_all_cookies()
         checkin = date
@@ -96,12 +95,7 @@ def get_hotel_price(link, driver):
             price_ls.extend(price_pack)
         except TimeoutException:
             print(f"{uid} is empty at {date}")
-            empty_date.append(str(date))
-    empty_pack = {
-        'date': empty_date,
-        'resource_id': uid
-    }
-    return price_ls, empty_pack
+    return price_ls
 
 
 def ack_message(channel, delivery_tag):
@@ -113,14 +107,12 @@ def do_work(connection, channel, delivery_tag, body, driver):
     db = pool.get_conn()
     db.ping(reconnect=True)
     url = json.loads(body.decode('UTF-8'))
-    prices, empty = get_hotel_price(url, driver)
+    prices = get_hotel_price(url, driver)
     if prices:
         price_to_sql(prices, db)
         print(f"insert {url['hotel_id']} successfully")
     else:
         print(f"{url['hotel_id']} is empty")
-    if empty['date']:
-        empty_to_sql(empty, db)
     print(f"hotel {url['hotel_id']}: done")
     cb = functools.partial(ack_message, channel, delivery_tag)
     connection.add_callback_threadsafe(cb)
