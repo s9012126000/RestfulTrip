@@ -29,7 +29,7 @@
               <div class="col-md-3 ps-5 pe-3 ms-0">
                 <div class="form-floating">
                   <input type="text" class="form-control" id="floatingInputGrid" placeholder="你想去哪？" name="dest" value="{{ user_send.dest}}">
-                  <label >想要去哪？</label>
+                  <label >輸入目的地或飯店名稱</label>
                 </div>
               </div>
               <div class="col-md-2 px-3">
@@ -88,7 +88,7 @@
                           <a href="{{ price[hotel_data[i].id][p][1] }}" target="_blank" style="text-decoration:none; color:#003060" >
                             <img src="https://tw.hotels.com/_dms/header/logo.svg?locale=zh_TW&siteid=300000045&2" style="width:80px">
                             {% if price[hotel_data[i].id][p][0] == '0' %}
-                            <h4 class="card-text mb-2" >當日已無空房</h4>
+                            <h5 class="card-text mb-2" >當日已無空房</h5>
                             {% else %}
                             <h4 class="card-text mb-2" >NT${{ price[hotel_data[i].id][p][0] }}</h4>
                             {% endif %}
@@ -97,7 +97,7 @@
                           <a href="{{ price[hotel_data[i].id][p][1] }}" target="_blank" style="text-decoration:none; color:#003060">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Booking.com_Logo.svg/320px-Booking.com_Logo.svg.png" style="width:80px">
                             {% if price[hotel_data[i].id][p][0] == '0' %}
-                            <h4 class="card-text mb-2" >當日已無空房</h4>
+                            <h5 class="card-text mb-2" >當日已無空房</h5>
                             {% else %}
                             <h4 class="card-text mb-2" >NT${{ price[hotel_data[i].id][p][0] }}</h4>
                             {% endif %}
@@ -106,7 +106,7 @@
                           <a href="{{ price[hotel_data[i].id][p][1] }}" target="_blank" style="text-decoration:none; color:#003060">
                             <img src="https://cdn6.agoda.net/images/kite-js/logo/agoda/color-default.svg" style="width:50px">
                             {% if price[hotel_data[i].id][p][0] == '0' %}
-                            <h4 class="card-text mb-2" >當日已無空房</h4>
+                            <h5 class="card-text mb-2" >當日已無空房</h5>
                             {% else %}
                             <h4 class="card-text mb-2" >NT${{ price[hotel_data[i].id][p][0] }}</h4>
                             {% endif %}
