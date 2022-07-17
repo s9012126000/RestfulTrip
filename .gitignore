@@ -1,0 +1,16 @@
+#directories
+test/
+__pycache__/
+imgs/
+logs/
+tmp/
+favicon_io/
+
+#files
+test.*
+.DS_Store
+.env
+.idea
+*.csv
+chromedriver
+*.jpg

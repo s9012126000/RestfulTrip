@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <link href="/static/bootstrap.css" rel="stylesheet">
+  <script src='/static/plotly.js'></script>
+</head>
+
+<body>
+  <div class="container mt-4 mb-3 ps-3" style="max-width:80%">
+    <div class="row">
+      <div class="col-md-4">
+        <img src="/static/imgs/logo.png" style="width: 350px;">
+      </div>
+    </div>
+  </div>
+
+
+  <div style="background-color:rgb(255,248,240)">
+    <div class="container" style="background-color:rgb(255,248,240);max-width:100%">
+      <div class="row p-3 pb-0">
+        <div id='barchart' class="col-md-4 m-3"></div>
+        <div id='pipe1_time' class="col-md-4 m-3"></div>
+        <div id='pipe1_accu' class="col-md-3 m-3"></div>
+      </div>
+      <div class="row p-3 pt-0" style="height:480px">
+        <div id='pipe2_price' class="col-md-4 m-3"></div>
+        <div id='pipe2_time' class="col-md-4 m-3"></div>
+        <div class="col-md-3 m-4">
+        <div class="card pb-4" >
+          <div class="card-body">
+            <h2>Hotels Data Count:</h2>
+            <br>
+            <h1 id="hotel"></h1>
+          </div>
+        </div>
+          <div class="card mt-4 pb-4" >
+            <div class="card-body">
+              <h2>Price Data Count:</h2>
+              <br>
+              <h1 id="price">1231231</h1>
+            </div>
+          </div>
+        </div>
+
+    </div>
+  </div>
+  </body>
+  <script src="/static/dash.js"></script>
+  <script src="/static/bootstrap.js"></script>
+</html>

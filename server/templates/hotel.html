@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>RestfulTrip</title>
+    <link href="./static/bootstrap.css" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="./static/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./static/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./static/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="./static/favicon_io/site.webmanifest">
+  </head>
+  <body>
+      <!-- title -->
+      <div class="container mt-4 mb-3 ps-3" style="max-width:80%">
+        <a href="/">
+          <img src="./static/imgs/logo.png" style="width: 350px;">
+        </a>
+      </div>
+      <!-- banner -->
+      <div>
+        <img src="./static/imgs/IMG_5280 3.JPG" style="max-width:100%;opacity:0.8;filter: blur(3px)">
+        <span style="position:absolute;top:28%;left:8%;width:90%">
+          <div class="container"  style="max-width:100%;">
+            <h1 class="text-white py-3" style="font-size:50px;padding-left:35px"><a href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page=1" style="text-decoration:none;color:white">就此啟程</a></h1>
+            <!-- form  -->
+            <form method="get" action="/hotels">
+              <div class="row">
+              <div class="col-md-3 ps-5 pe-3 ms-0">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="floatingInputGrid" placeholder="你想去哪？" name="dest" value="{{ user_send.dest}}">
+                  <label >輸入目的地或飯店名稱</label>
+                </div>
+              </div>
+              <div class="col-md-2 px-3">
+                <div class="form-floating">
+                  <input type="date" class="form-control" name="checkin" value="{{ user_send.checkin }}" min="{{checkin}}" max="{{checkin_limit}}">
+                  <label >入住日期</label>
+                </div>
+              </div>
+              <div class="col-md-2 px-3">
+                <div class="form-floating">
+                  <input type="date" class="form-control" name="checkout" value="{{ user_send.checkout }}" min="{{checkout}}" max="{{checkout_limit}}">
+                  <label >退房日期</label>
+                </div>
+              </div>
+              <div class="col-md-2 px-3">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="floatingInputGrid" placeholder="幾位入住？" name="person" value="{{ user_send.person }}">
+                  <label>幾位入住</label>
+                </div>
+              </div>
+                <button class="btn btn-outline-light col-md-1 mx-5" style="width:150px;border-radius:23px;" type="submit">搜出好價</button>
+            </div>
+            </form>
+          </div>
+      </span>
+      </div>
+      <!-- card -->
+      <div >
+        <div class="container  p-2" style="max-width:100%">
+          <div class="container" style="max-width:84%"><h3 class="px-4 my-3"> {{msg}} </h3></div>
+          {% for i in range(hotel_data|length) %}
+          <div class="container" id="card-content" style="max-width:84%">
+            <div class="card mb-12 mb-4 mx-4" style="max-width: 100%;height:250px ; border-radius:25px">
+              <div class="row">
+                <div class="col-md-3" style="width:20%; height:50%;">
+                  <img src="{{ image_data[hotel_data[i].id][0] }}" class="img-fluid" alt="..." style="border-radius:23px; height:250px; width:100%">
+                </div>
+                <div class="col-md-2 ps-2 px-0" style="width:60%">
+                  <div class="card-body p-0" style="width:100%;margin-top:2%">
+                    <h4 class="card-title mb-1" style="color:#003060" >{{hotel_data[i].name}}</h4>
+                    <p class="card-text my-1">{{hotel_data[i].star}} 星級</p>
+                    <p class="card-text my-1">{{hotel_data[i].address}}</p>
+                    <p class="card-text my-1"><small class="text-muted" style="font-size:12px">{{hotel_data[i].des}}</small></p>
+                  </div>
+                </div>
+                <div class="col-md-3 px-4" style="width:20%;">
+                  <div class="card-body px-0">
+                    {% if user_send.person|int > 10 %}
+                    <h5 class="card-title pt-1" style="color:#FF8040">當日無該房型</h5>
+                    {% elif price[hotel_data[i].id]|length == 0 %}
+                    <h5 class="card-title pt-1" style="color:#FF8040">當日已無空房</h5>
+                    {% else %}
+                    <h5 class="card-title pt-1">每晚平均：</h5>
+                      {% for p in price[hotel_data[i].id]%}
+                        {% if p == 1 %}
+                          <a href="{{ price[hotel_data[i].id][p][1] }}" target="_blank" style="text-decoration:none; color:#003060" >
+                            <img src="https://tw.hotels.com/_dms/header/logo.svg?locale=zh_TW&siteid=300000045&2" style="width:80px">
+                            {% if price[hotel_data[i].id][p][0] == '0' %}
+                            <h5 class="card-text mb-2" >當日已無空房</h5>
+                            {% else %}
+                            <h4 class="card-text mb-2" >NT${{ price[hotel_data[i].id][p][0] }}</h4>
+                            {% endif %}
+                          </a>
+                        {% elif p == 2 %}
+                          <a href="{{ price[hotel_data[i].id][p][1] }}" target="_blank" style="text-decoration:none; color:#003060">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Booking.com_Logo.svg/320px-Booking.com_Logo.svg.png" style="width:80px">
+                            {% if price[hotel_data[i].id][p][0] == '0' %}
+                            <h5 class="card-text mb-2" >當日已無空房</h5>
+                            {% else %}
+                            <h4 class="card-text mb-2" >NT${{ price[hotel_data[i].id][p][0] }}</h4>
+                            {% endif %}
+                          </a>
+                        {% elif p == 3 %}
+                          <a href="{{ price[hotel_data[i].id][p][1] }}" target="_blank" style="text-decoration:none; color:#003060">
+                            <img src="https://cdn6.agoda.net/images/kite-js/logo/agoda/color-default.svg" style="width:50px">
+                            {% if price[hotel_data[i].id][p][0] == '0' %}
+                            <h5 class="card-text mb-2" >當日已無空房</h5>
+                            {% else %}
+                            <h4 class="card-text mb-2" >NT${{ price[hotel_data[i].id][p][0] }}</h4>
+                            {% endif %}
+                          </a>
+                        {% endif %}
+                      {% endfor %}
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <!-- paging -->
+      <div class="d-flex justify-content-center mb-0 pb-0">
+        {% if '為您搜出' in msg %}
+        <nav aria-label="Page navigation example">
+          <ul class="pagination">
+            {% if page|int == 1 %}
+              <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int}}">Previous</a></li>
+            {% else %}
+              <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int -1}}">Previous</a></li>
+            {% endif %}
+
+            {% if page|int -2 > 0 %}
+              <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int-2}}">{{page|int-2}}</a></li>
+            {% endif %}
+
+            {% if page|int -1 > 0 %}
+              <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int-1}}">{{page|int-1}}</a></li>
+            {% endif %}
+
+              <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int}}"><b >{{page|int}}</b></a></li>
+
+            {% if page|int < page_tol|int %}
+              <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int+1}}">{{page|int+1}}</a></li>
+            {% endif %}
+            {% if page|int < page_tol|int-1 %}
+              <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int+2}}">{{page|int+2}}</a></li>
+            {% endif %}
+            {% if page|int < page_tol|int %}
+              <li class="page-item"><a class="page-link" href="/hotels?dest={{ user_send.dest }}&checkin={{ user_send.checkin }}&checkout={{ user_send.checkout }}&person={{ user_send.person }}&page={{page|int +1}}">Next</a></li>
+            {% endif %}
+
+          </ul>
+        </nav>
+        {% endif %}
+      </div>
+  <script src="./static/bootstrap.js"></script>
+  </body>
+</html>
