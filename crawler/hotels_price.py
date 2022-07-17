@@ -17,7 +17,7 @@ def replace_all(text, dt):
 
 def get_thirty_dates():
     date_ls = []
-    for d in range(30):
+    for d in range(14):
         date = (datetime.datetime.now().date() + datetime.timedelta(days=d))
         date_ls.append(date)
     return date_ls
@@ -33,14 +33,14 @@ class Worker(threading.Thread):
     def run(self):
         while not job_queue.empty():
             jb = job_queue.get()
-            prices, empty = self.get_hotel_price(jb)
+            prices = self.get_hotel_price(jb)
             if prices:
                 price_to_sql(prices, self.db)
                 print(f"insert {jb['hotel_id']} successfully")
             else:
                 print(f"{jb['hotel_id']} is empty")
-            if empty['date']:
-                empty_to_sql(empty, self.db)
+            # if empty['date']:
+            #     empty_to_sql(empty, self.db)
             print(f"hotel {jb['hotel_id']}: done")
 
     def get_hotel_price(self, link):
@@ -48,7 +48,7 @@ class Worker(threading.Thread):
         uid = link['id']
         url = link['url']
         price_ls = []
-        empty_date = []
+        # empty_date = []
         for date in date_ls:
             checkin = date
             checkout = date + datetime.timedelta(days=1)
@@ -92,17 +92,18 @@ class Worker(threading.Thread):
                     'resource_id': uid,
                     'person': person}
                     for person, price in price_dict.items()]
-                pprint(price_pack)
+
                 price_ls.extend(price_pack)
             except TimeoutException:
                 print(f"{uid} is empty at {date}")
-                empty_date.append(str(date))
-        empty_pack = {
-            'date': empty_date,
-            'resource_id': uid
-        }
-        pprint(empty_pack)
-        return price_ls, empty_pack
+        #         empty_date.append(str(date))
+        # empty_pack = {
+        #     'date': empty_date,
+        #     'resource_id': uid
+        # }
+        # pprint(empty_pack)
+        pprint(price_ls)
+        return price_ls
 
 
 if __name__ == '__main__':
@@ -112,7 +113,7 @@ if __name__ == '__main__':
     MyDb.ping(reconnect=True)
     cursor = MyDb.cursor()
     cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 1 ORDER BY hotel_id')
-    urls = cursor.fetchall()[0:10]
+    urls = cursor.fetchall()
     MyDb.commit()
     pool.release(MyDb)
 
@@ -121,11 +122,12 @@ if __name__ == '__main__':
         job_queue.put(job)
 
     workers = []
-    worker_count = 5
+    worker_count = 4
     for i in range(worker_count):
         MyDb = pool.get_conn()
         num = i + 1
         driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
+        driver.execute_cdp_cmd("Network.setCacheDisabled", {"cacheDisabled": True})
         driver.delete_all_cookies()
         worker = Worker(num, driver, MyDb)
         workers.append(worker)

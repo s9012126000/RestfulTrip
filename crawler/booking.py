@@ -1,7 +1,7 @@
 from config.mongo_config import *
 from config.crawler_config import *
 from math import ceil
-
+from pprint import pprint
 import threading
 import datetime
 import random
@@ -37,6 +37,14 @@ def get_region_url(path):
         json.dump(links, f)
 
 
+def get_hotel_num(div):
+    headers['User-Agent'] = UserAgent().random
+    req = requests.get(div, headers=headers, allow_redirects=False)
+    soup = BeautifulSoup(req.text, 'html.parser')
+    number = int(soup.find('h1').text.replace(',', '').split(' ')[1])
+    return number
+
+
 class Worker(threading.Thread):
     def __init__(self, worker_num):
         threading.Thread.__init__(self)
@@ -48,8 +56,20 @@ class Worker(threading.Thread):
 
     def get_booking_hotels(self, region):
         col = client['personal_project']['booking']
-        hotel_num = region[1]
         url = region[0]
+        try:
+            hotel_num = get_hotel_num(url)
+        except AttributeError:
+            hotel_num = 1000
+            for _ in range(5):
+                try:
+                    time.sleep(0.5)
+                    hotel_num = get_hotel_num(url)
+                    break
+                except AttributeError:
+                    continue
+        print(f'region {hotel_num}')
+
         iter_count = ceil(hotel_num / 25)
         offset = 0
         hotel_ls = []
@@ -84,9 +104,9 @@ class Worker(threading.Thread):
                         e.write('url:\n' + url + '\n')
                     print(f"lost card")
                     break
-            for card in property_card:
+            for card in range(len(property_card)):
                 def fetching():
-                    link = card.find('a')['href']
+                    link = property_card[card].find('a')['href']
                     headers['User-Agent'] = UserAgent().random
                     hotel_req = requests.get(link, headers=headers, allow_redirects=False)
                     hotel_soup = BeautifulSoup(hotel_req.text, 'html.parser')
@@ -111,7 +131,8 @@ class Worker(threading.Thread):
                         'des': des,
                         'star': star
                     }
-                    print(f'{self.worker_num} success: {name}')
+                    n = name.split('\n')[-2]
+                    print(f'worker {self.worker_num}: {card} {n}')
                     hotel_ls.append(pack)
                     time.sleep(random.randint(1, 2))
                 try:
@@ -147,7 +168,7 @@ if __name__ == '__main__':
         job_queue.put(job)
 
     workers = []
-    worker_count = 4
+    worker_count = 13
     for i in range(worker_count):
         num = i + 1
         worker = Worker(num)
