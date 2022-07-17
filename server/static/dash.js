@@ -88,8 +88,7 @@ function pipe1_time(data){
     var trace1 = {
       x: data.date,
       y: data.spend,
-      type: 'scatter',
-      name: 'Hotel Crawler'
+      type: 'scatter'
     };
 
     var data = [trace1];
@@ -101,7 +100,6 @@ function pipe1_time(data){
                 size: 24
               }, xref: 'paper',
         },
-        showlegend: true,
         legend: {
             font: {
                 family: 'Arial, serif',
