@@ -1,4 +1,5 @@
 from config.mongo_config import *
+from config.mysql_config import *
 import datetime
 import boto3
 import json
@@ -50,7 +51,24 @@ def data_transfer():
         db['agoda'].drop()
 
 
+def store_start_time_dashboard():
+    date = datetime.datetime.now().date()
+    start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+    mysql_db = pool.get_conn()
+    dash_time = [date, 0, 1, start_time]
+    mysql_db.ping(reconnect=True)
+    cursor = mysql_db.cursor()
+    sql = """
+            INSERT INTO dash_time (date, resource, pipe, start) VALUES (%s, %s, %s, %s) 
+            ON DUPLICATE KEY UPDATE start = VALUES (start)
+            """
+    cursor.execute(sql, dash_time)
+    mysql_db.commit()
+    pool.release(mysql_db)
+
+
 if __name__ == '__main__':
     data_transfer()
-
+    store_start_time_dashboard()
+    os._exit(0)
 

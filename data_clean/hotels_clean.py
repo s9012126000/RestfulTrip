@@ -6,29 +6,25 @@ from difflib import SequenceMatcher
 import pandas as pd
 import time
 import re
-import os
 
 
 class Hotel_manager(ABC):
     @property
     @abstractmethod
-    def web(self):
-        pass
-
-    @property
     def raw(self):
-        col = client['personal_project'][self.web]
-        query = col.find({}, {'_id': 0})
-        hotels = [x for x in query]
-        return hotels
+        return NotImplemented
 
     @property
     @abstractmethod
     def cleaned_hotel(self):
-        pass
+        return NotImplemented
 
     @abstractmethod
     def clean_pipe(self):
+        return NotImplemented
+
+    @abstractmethod
+    def store_hotel_dashboard(self):
         return NotImplemented
 
     def compare(self, cleaned, df):
@@ -86,6 +82,7 @@ class Hotel_manager(ABC):
         return update_ls, insert_ls
 
     def run(self, exist_df):
+        self.store_hotel_dashboard()
         clean = self.clean_pipe()
         update, insert = self.compare(clean, exist_df)
         data = self.update(update, insert, exist_df)
@@ -161,20 +158,20 @@ class Hotel_manager(ABC):
 
     @classmethod
     def get_current_sql(cls):
-        MyDb.ping(reconnect=True)
-        cursor = MyDb.cursor()
+        mysql_db.ping(reconnect=True)
+        cursor = mysql_db.cursor()
         cursor.execute('SELECT * FROM hotels')
         hotels_ls = cursor.fetchall()
-        MyDb.commit()
+        mysql_db.commit()
         df = pd.DataFrame(hotels_ls)
         return df
 
     def first_insert(self):
-        MyDb.ping(reconnect=True)
-        cursor = MyDb.cursor()
+        mysql_db.ping(reconnect=True)
+        cursor = mysql_db.cursor()
         cursor.execute("SELECT id FROM hotels ORDER BY id DESC LIMIT 1")
         last_id = cursor.fetchone()
-        MyDb.commit()
+        mysql_db.commit()
         if not last_id:
             hotel_id = 0
         else:
@@ -199,7 +196,7 @@ class Hotel_manager(ABC):
         cursor.executemany(hotel_sql, hotel_vals)
         cursor.executemany(res_sql, res_vals)
         cursor.executemany(img_sql, img_vals)
-        MyDb.commit()
+        mysql_db.commit()
 
     def __repr__(self):
         return str(f"{len(self.raw)} raw hotels")
@@ -210,13 +207,28 @@ class Hotel_manager(ABC):
 
 class Hotels(Hotel_manager, ABC):
     @property
-    def web(self):
-        return 'hotels'
+    def raw(self):
+        col = client['personal_project']['hotels']
+        query = col.find({}, {'_id': 0})
+        hotels = [x for x in query]
+        return hotels
 
     @property
     def cleaned_hotel(self):
         data = self.clean_pipe()
         return data
+
+    def store_hotel_dashboard(self):
+        cursor = mysql_db.cursor()
+        cursor.execute("SELECT * FROM dash_time ORDER BY date DESC")
+        date = cursor.fetchone()['date']
+        mysql_db.commit()
+        dash_hotel = {
+            'date': date,
+            'resource': 1,
+            'tol': len(self.raw)
+        }
+        dic_to_sql('dash_hotels', dash_hotel, mysql_db)
 
     def clean_pipe(self):
         check_ls = []
@@ -263,13 +275,28 @@ class Hotels(Hotel_manager, ABC):
 
 class Booking(Hotel_manager, ABC):
     @property
-    def web(self):
-        return 'booking'
+    def raw(self):
+        col = client['personal_project']['booking']
+        query = col.find({}, {'_id': 0})
+        hotels = [x for x in query]
+        return hotels
 
     @property
     def cleaned_hotel(self):
         data = self.clean_pipe()
         return data
+
+    def store_hotel_dashboard(self):
+        cursor = mysql_db.cursor()
+        cursor.execute("SELECT * FROM dash_time ORDER BY date DESC")
+        date = cursor.fetchone()['date']
+        mysql_db.commit()
+        dash_hotel = {
+            'date': date,
+            'resource': 2,
+            'tol': len(self.raw)
+        }
+        dic_to_sql('dash_hotels', dash_hotel, mysql_db)
 
     def clean_pipe(self):
         check_ls = []
@@ -304,13 +331,28 @@ class Booking(Hotel_manager, ABC):
 
 class Agoda(Hotel_manager, ABC):
     @property
-    def web(self):
-        return 'agoda'
+    def raw(self):
+        col = client['personal_project']['agoda']
+        query = col.find({}, {'_id': 0})
+        hotels = [x for x in query]
+        return hotels
 
     @property
     def cleaned_hotel(self):
         data = self.clean_pipe()
         return data
+
+    def store_hotel_dashboard(self):
+        cursor = mysql_db.cursor()
+        cursor.execute("SELECT * FROM dash_time ORDER BY date DESC")
+        date = cursor.fetchone()['date']
+        mysql_db.commit()
+        dash_hotel = {
+            'date': date,
+            'resource': 3,
+            'tol': len(self.raw)
+        }
+        dic_to_sql('dash_hotels', dash_hotel, mysql_db)
 
     def clean_pipe(self):
         check_ls = []
@@ -360,35 +402,29 @@ class Agoda(Hotel_manager, ABC):
 
 
 if __name__ == '__main__':
-    MyDb = pool.get_conn()
-    hotels = Hotels()
+    mysql_db = pool.get_conn()
+    hotel = Hotels()
     booking = Booking()
     agoda = Agoda()
-    pipline = [hotels, booking, agoda]
+    pipline = [hotel, booking, agoda]
 
     image_ls, resource_ls = [], []
-    current_hotel = hotels.get_current_sql()
+    current_hotel = hotel.get_current_sql()
     for job in pipline:
         try:
             data_pack = job.run(current_hotel)
             current_hotel = data_pack[0]
             image_ls.extend(data_pack[1])
             resource_ls.extend(data_pack[2])
+        # exception for initiating pipeline first time ever
         except KeyError:
             job.first_insert()
-            current_hotel = hotels.get_current_sql()
+            current_hotel = hotel.get_current_sql()
             data_pack = job.run(current_hotel)
             current_hotel = data_pack[0]
 
-    hotels_to_sql(current_hotel, MyDb)
-    dt_to_sql('images', image_ls, MyDb)
-    dt_to_sql('resources', resource_ls, MyDb)
-    pool.release(MyDb)
+    hotels_to_sql(current_hotel, mysql_db)
+    ls_to_sql('images', image_ls, mysql_db)
+    ls_to_sql('resources', resource_ls, mysql_db)
+    pool.release(mysql_db)
     os._exit(0)
-
-
-
-
-
-    # MyDb.close()
-    # pool.release(MyDb)
