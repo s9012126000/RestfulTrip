@@ -61,7 +61,7 @@ def hotels_to_sql(df, db):
     db.commit()
 
 
-def dt_to_sql(table, ls, db):
+def ls_to_sql(table, ls, db):
     keys = list(ls[0].keys())
     columns = ', '.join(keys)
     placeholders = ', '.join(['%s'] * len(ls[0]))
@@ -70,6 +70,18 @@ def dt_to_sql(table, ls, db):
     cursor = db.cursor()
     sql = f"INSERT IGNORE INTO {table} ({columns}) VALUES ({placeholders})"
     cursor.executemany(sql, vals)
+    db.commit()
+
+
+def dic_to_sql(table, dic, db):
+    keys = list(dic.keys())
+    vals = list(dic.values())
+    placeholders = ', '.join(['%s'] * len(vals))
+    columns = ', '.join(keys)
+    db.ping(reconnect=True)
+    cursor = db.cursor()
+    sql = f"INSERT  INTO {table} ({columns}) VALUES ({placeholders})"
+    cursor.execute(sql, vals)
     db.commit()
 
 
