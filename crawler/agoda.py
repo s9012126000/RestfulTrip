@@ -208,7 +208,7 @@ if __name__ == '__main__':
     for job_index in divisions:
         job_queue.put(job_index)
     workers = []
-    worker_count = 3 
+    worker_count = 4
     for i in range(worker_count):
         num = i+1
         driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
