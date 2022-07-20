@@ -65,12 +65,13 @@ def fetch_data():
     cursor.execute("SELECT * FROM dash_time")
     pipe_time = cursor.fetchall()
     MyDb.commit()
+    print(pipe_time)
     pipe_time = [
         {'date': str(x['date']),
          'spend': round((x['end'] - x['start']).seconds / 3600, 3),
          'pipe': x['pipe'],
          'resource': x['resource']
-         } for x in pipe_time
+         } for x in pipe_time if x['start'] is not None and x['end'] is not None
     ]
     pipe1_time = [x for x in pipe_time if x['pipe'] == 1]
     pipe2_time = [x for x in pipe_time if x['pipe'] == 2]
