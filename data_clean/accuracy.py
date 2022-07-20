@@ -7,6 +7,7 @@ cursor = MyDb.cursor()
 
 cursor.execute("SELECT resource, url FROM resources")
 urls = cursor.fetchall()
+MyDb.commit()
 pat = re.compile('https[\S]+\?')
 al = [re.match(pat, x['url']).group() for x in urls]
 
@@ -29,3 +30,14 @@ b_err = len(b)
 a = a.groupby('url').sum().reset_index()
 a = a[a['count'] > 1]
 a_err = len(a)
+
+tol_err = h_err + b_err + a_err
+
+cursor.execute("SELECT count(*) as c FROM hotels")
+tol = cursor.fetchone()
+MyDb.commit()
+
+accuracy = round(((tol['c']-tol_err)/tol['c']) * 100, 2)
+
+print(f'Repeat data: {tol_err}')
+print(f'Accuracy: {accuracy}%')
