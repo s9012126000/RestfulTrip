@@ -80,7 +80,7 @@ def dic_to_sql(table, dic, db):
     columns = ', '.join(keys)
     db.ping(reconnect=True)
     cursor = db.cursor()
-    sql = f"INSERT  INTO {table} ({columns}) VALUES ({placeholders})"
+    sql = f"INSERT IGNORE INTO {table} ({columns}) VALUES ({placeholders})"
     cursor.execute(sql, vals)
     db.commit()
 
