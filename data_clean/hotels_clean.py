@@ -308,7 +308,7 @@ class Booking(Hotel_manager, ABC):
                 check_ls.append(d['name'])
         hotel_ls = []
         for d in hotels:
-            name = d['name'].split('\n')[-2]
+            name = d['name'].split('\n')[-1]
             address = d['address'].replace('\n', '').strip()
             des = d['des'].strip().replace('\n', '')
             star = d['star']
