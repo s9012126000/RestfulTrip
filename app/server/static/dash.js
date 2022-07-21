@@ -370,7 +370,7 @@ function pipe2_time(data){
     Plotly.newPlot('pipe2_time', data, layout);
 }
 
-fetch('/admin/fetch_data')
+fetch('/admin/fetch_data', {method: 'POST'})
   .then(function(res) {
     return res.json();
   })
