@@ -59,4 +59,11 @@ with DAG(
         dag=dag
     )
 
-    store_last_data >> hotels_crawler >> [booking_crawler, agoda_crawler] >> data_clean
+    data_accuracy = BashOperator(
+        task_id='data_accuracy',
+        bash_command=f"cd {PATH}/data_clean/ && python3 hotel_accuracy.py",
+        do_xcom_push=False,
+        dag=dag
+    )
+
+    store_last_data >> hotels_crawler >> booking_crawler >> agoda_crawler >> data_clean >> data_accuracy

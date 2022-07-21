@@ -44,7 +44,7 @@ class Worker(threading.Thread):
             return card
         try:
             cards = get_cards()
-        except TimeoutException:
+        except (TimeoutException, ElementClickInterceptedException):
             cards = self.driver.find_elements(
                 By.XPATH, "//section[@class='results']/ol/li/div/a[@data-stid='open-hotel-information']")
             for i in range(5):
@@ -53,7 +53,7 @@ class Worker(threading.Thread):
                     self.driver.refresh()
                     cards = get_cards()
                     break
-                except TimeoutException:
+                except (TimeoutException, ElementClickInterceptedException):
                     print(self.worker_num, 'attempt', i + 1, 'fail')
                     if i == 4:
                         cards = self.driver.find_elements(
