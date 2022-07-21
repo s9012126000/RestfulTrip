@@ -42,10 +42,10 @@ def sending_queue(urls, que):
 
 if __name__ == '__main__':
     hotels = fetching_hotels(1)
-    # booking = fetching_hotels(2)
-    # agoda = fetching_hotels(3)
+    booking = fetching_hotels(2)
+    agoda = fetching_hotels(3)
     sending_queue(hotels, 'hotels')
-    # sending_queue(booking, 'booking')
-    # sending_queue(agoda, 'agoda')
+    sending_queue(booking, 'booking')
+    sending_queue(agoda, 'agoda')
     conn.close()
     os._exit(0)
