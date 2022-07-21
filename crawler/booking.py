@@ -1,7 +1,6 @@
 from config.mongo_config import *
 from config.crawler_config import *
 from math import ceil
-from pprint import pprint
 import threading
 import datetime
 import random
@@ -110,7 +109,7 @@ class Worker(threading.Thread):
                     headers['User-Agent'] = UserAgent().random
                     hotel_req = requests.get(link, headers=headers, allow_redirects=False)
                     hotel_soup = BeautifulSoup(hotel_req.text, 'html.parser')
-                    name = hotel_soup.find(id='hp_hotel_name').text
+                    name = hotel_soup.find(id='hp_hotel_name').text.strip('\n')
                     address = hotel_soup.find(id='showMap2').findAll('span')[1].text
                     try:
                         rating = hotel_soup.find('div', attrs={"data-testid": "review-score-right-component"}).text
@@ -131,20 +130,20 @@ class Worker(threading.Thread):
                         'des': des,
                         'star': star
                     }
-                    n = name.split('\n')[-2]
+                    n = name.split('\n')[-1]
                     print(f'worker {self.worker_num}: {card} {n}')
                     hotel_ls.append(pack)
                     time.sleep(random.randint(1, 2))
                 try:
                     fetching()
-                except AttributeError as m:
+                except (AttributeError, ConnectionError):
                     for i in range(5):
                         try:
                             print(f'attempt {i}')
                             time.sleep(10)
                             fetching()
                             break
-                        except AttributeError:
+                        except (AttributeError, ConnectionError):
                             print(f'attempt {i} fail')
                             if i == 4:
                                 with open('logs/hotels/booking_lost_data.log', 'a') as e:
