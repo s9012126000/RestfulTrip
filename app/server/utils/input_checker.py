@@ -6,7 +6,7 @@ def check_input_date(checkin, checkout):
     date_limit = True
     date_tag = True
     try:
-        if checkin != '' and checkout != '':
+        if checkin != "" and checkout != "":
             che_in = datetime.datetime.strptime(checkin, "%Y-%m-%d")
             che_out = datetime.datetime.strptime(checkout, "%Y-%m-%d")
             if che_out < che_in:
@@ -47,7 +47,7 @@ def check_input_person(person):
 
 def check_input_dest(dest):
     dest_tag = True
-    if dest == '':
+    if dest == "":
         dest_tag = False
     elif re.search(r'[\dA-Za-z%_&\-~@#$^*(){}|\[\]?><.=+;:"]+', dest):
         dest_tag = False
