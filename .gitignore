@@ -5,6 +5,7 @@ imgs/
 logs/
 tmp/
 favicon_io/
+.pytest_cache/
 
 #files
 test.*
