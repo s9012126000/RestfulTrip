@@ -1,24 +1,23 @@
-import time
-
 from config.crawler_config import *
 from config.mysql_config import *
 from pprint import pprint
 import datetime
 import threading
 import queue
+import time
 import re
 
 
-def replace_all(text, dt):
-    for i, j in dt.items():
+def replace_all(text, dic):
+    for i, j in dic.items():
         text = text.replace(i, j)
     return text
 
 
-def get_thirty_dates():
+def get_dates():
     date_ls = []
     for d in range(14):
-        date = (datetime.datetime.now().date() + datetime.timedelta(days=d))
+        date = datetime.datetime.now().date() + datetime.timedelta(days=d)
         date_ls.append(date)
     return date_ls
 
@@ -39,46 +38,53 @@ class Worker(threading.Thread):
                 print(f"insert {jb['hotel_id']} successfully")
             else:
                 print(f"{jb['hotel_id']} is empty")
-            # if empty['date']:
-            #     empty_to_sql(empty, self.db)
             print(f"hotel {jb['hotel_id']}: done")
 
     def get_hotel_price(self, link):
-        date_ls = get_thirty_dates()
-        uid = link['id']
-        url = link['url']
+        date_ls = get_dates()
+        uid = link["id"]
+        url = link["url"]
         price_ls = []
         # empty_date = []
         for date in date_ls:
             checkin = date
             checkout = date + datetime.timedelta(days=1)
             replaces = {
-                'chkin=2022-10-01': f'chkin={checkin}',
-                'chkout=2022-10-02': f'chkout={checkout}',
+                "chkin=2022-10-01": f"chkin={checkin}",
+                "chkout=2022-10-02": f"chkout={checkout}",
             }
             url_new = replace_all(url, replaces)
-            # driver.set_page_load_timeout(10)
             try:
                 self.driver.get(url_new)
                 self.driver.execute_script("window.scrollTo(0, 800)")
                 time.sleep(0.5)
                 wait = WebDriverWait(self.driver, 1)
                 cards = wait.until(ec.presence_of_element_located((By.ID, "Offers")))
-                wait.until(ec.presence_of_all_elements_located((By.TAG_NAME, 'ul')))
+                wait.until(ec.presence_of_all_elements_located((By.TAG_NAME, "ul")))
                 try:
-                    empty = self.driver.find_element(By.XPATH, "//div[@data-stid='error-messages']").text
+                    empty = self.driver.find_element(
+                        By.XPATH, "//div[@data-stid='error-messages']"
+                    ).text
                     print(empty)
                     raise TimeoutException
                 except NoSuchElementException:
                     pass
-                wait.until(ec.presence_of_all_elements_located((By.XPATH, "//div[@data-stid='price-summary']")))
-                room = cards.find_elements(By.TAG_NAME, 'ul')
+                wait.until(
+                    ec.presence_of_all_elements_located(
+                        (By.XPATH, "//div[@data-stid='price-summary']")
+                    )
+                )
+                room = cards.find_elements(By.TAG_NAME, "ul")
                 room = [int(re.search(r"最多可入住 (\d) 人", x.text).group(1)) for x in room]
 
-                price = cards.find_elements(By.XPATH, "//div[@data-stid='price-summary']")
-                price = [int(re.search(r"\d+", (x.text.replace(',', ''))).group())
-                         for x in price]
-                room = room[0:len(price)]
+                price = cards.find_elements(
+                    By.XPATH, "//div[@data-stid='price-summary']"
+                )
+                price = [
+                    int(re.search(r"\d+", (x.text.replace(",", ""))).group())
+                    for x in price
+                ]
+                room = room[0 : len(price)]
                 price_dict = {}
                 for i in range(len(room)):
                     try:
@@ -86,36 +92,30 @@ class Worker(threading.Thread):
                             price_dict[room[i]] = price[i]
                     except KeyError:
                         price_dict[room[i]] = price[i]
-                price_pack = [{
-                    'date': date,
-                    'price': price,
-                    'resource_id': uid,
-                    'person': person}
-                    for person, price in price_dict.items()]
+                price_pack = [
+                    {"date": date, "price": price, "resource_id": uid, "person": person}
+                    for person, price in price_dict.items()
+                ]
 
                 price_ls.extend(price_pack)
             except TimeoutException:
                 print(f"{uid} is empty at {date}")
-        #         empty_date.append(str(date))
-        # empty_pack = {
-        #     'date': empty_date,
-        #     'resource_id': uid
-        # }
-        # pprint(empty_pack)
         pprint(price_ls)
         return price_ls
 
 
-if __name__ == '__main__':
-    MyDb = pool.get_conn()
+if __name__ == "__main__":
+    mysql_db = pool.get_conn()
     START_TIME = datetime.datetime.now()
     print(f"hotels started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
-    MyDb.ping(reconnect=True)
-    cursor = MyDb.cursor()
-    cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 1 ORDER BY hotel_id')
+    mysql_db.ping(reconnect=True)
+    cursor = mysql_db.cursor()
+    cursor.execute(
+        "SELECT id, url, hotel_id  FROM resources WHERE resource = 1 ORDER BY hotel_id"
+    )
     urls = cursor.fetchall()
-    MyDb.commit()
-    pool.release(MyDb)
+    mysql_db.commit()
+    pool.release(mysql_db)
 
     job_queue = queue.Queue()
     for job in urls:
@@ -124,12 +124,14 @@ if __name__ == '__main__':
     workers = []
     worker_count = 4
     for i in range(worker_count):
-        MyDb = pool.get_conn()
+        mysql_db = pool.get_conn()
         num = i + 1
-        driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
+        driver = webdriver.Chrome(
+            ChromeDriverManager(version="104.0.5112.20").install(), options=options
+        )
         driver.execute_cdp_cmd("Network.setCacheDisabled", {"cacheDisabled": True})
         driver.delete_all_cookies()
-        worker = Worker(num, driver, MyDb)
+        worker = Worker(num, driver, mysql_db)
         workers.append(worker)
 
     for worker in workers:
@@ -139,7 +141,7 @@ if __name__ == '__main__':
         worker.join()
         worker.driver.quit()
         pool.release(worker.db)
-        print(f'{worker.worker_num} done')
+        print(f"{worker.worker_num} done")
 
     END_TIME = datetime.datetime.now()
     print(f"hotels started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")

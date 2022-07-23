@@ -12,6 +12,5 @@ headers = {
     "Sec-Fetch-Mode": "navigate",
     "Sec-Fetch-Site": "none",
     "Upgrade-Insecure-Requests": "1",
-    "User-Agent": user_agent
+    "User-Agent": user_agent,
 }
-
