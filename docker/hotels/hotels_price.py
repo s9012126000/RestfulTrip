@@ -104,12 +104,12 @@ def ack_message(channel, delivery_tag):
 
 
 def do_work(connection, channel, delivery_tag, body, driver):
-    db = pool.get_conn()
-    db.ping(reconnect=True)
+    mysql_db = pool.get_conn()
+    mysql_db.ping(reconnect=True)
     url = json.loads(body.decode('UTF-8'))
     prices = get_hotel_price(url, driver)
     if prices:
-        price_to_sql(prices, db)
+        price_to_sql(prices, mysql_db)
         print(f"insert {url['hotel_id']} successfully")
     else:
         print(f"{url['hotel_id']} is empty")
@@ -117,7 +117,7 @@ def do_work(connection, channel, delivery_tag, body, driver):
     cb = functools.partial(ack_message, channel, delivery_tag)
     connection.add_callback_threadsafe(cb)
     driver.quit()
-    pool.release(db)
+    pool.release(mysql_db)
 
 
 def on_message(channel, method_frame, header_frame, body, args):

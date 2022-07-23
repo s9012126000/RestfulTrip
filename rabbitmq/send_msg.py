@@ -1,4 +1,4 @@
-from mysql_config import *
+from config.mysql_config import *
 import json
 import pika
 
@@ -21,13 +21,13 @@ channel = conn.channel()
 
 
 def fetching_hotels(resource):
-    MyDb = pool.get_conn()
-    MyDb.ping(reconnect=True)
-    cursor = MyDb.cursor()
+    mysql_db = pool.get_conn()
+    mysql_db.ping(reconnect=True)
+    cursor = mysql_db.cursor()
     cursor.execute(f'SELECT id, url, hotel_id  FROM resources WHERE resource = {resource} ORDER BY hotel_id')
     urls = cursor.fetchall()
-    MyDb.commit()
-    pool.release(MyDb)
+    mysql_db.commit()
+    pool.release(mysql_db)
     return urls
 
 

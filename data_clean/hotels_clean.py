@@ -88,15 +88,15 @@ class Hotel_manager(ABC):
         data = self.update(update, insert, exist_df)
         return data
 
-    @classmethod
-    def normalize(cls, text):
+    @staticmethod
+    def normalize(text):
         replaces = {' ': '', '-': '', '(': '', ')': '', ',': '', '.': '', '．': '', '‧': ''}
         for i, j in replaces.items():
             text = text.replace(i, j).lower()
         return text
 
-    @classmethod
-    def update(cls, update_ls, insert_ls, exist_df):
+    @staticmethod
+    def update(update_ls, insert_ls, exist_df):
         img_ls = []
         res_ls = []
         if update_ls:
@@ -156,8 +156,8 @@ class Hotel_manager(ABC):
             new_df = exist_df
         return new_df, img_ls, res_ls
 
-    @classmethod
-    def get_current_sql(cls):
+    @staticmethod
+    def get_current_sql():
         mysql_db.ping(reconnect=True)
         cursor = mysql_db.cursor()
         cursor.execute('SELECT * FROM hotels')
@@ -308,7 +308,7 @@ class Booking(Hotel_manager, ABC):
                 check_ls.append(d['name'])
         hotel_ls = []
         for d in hotels:
-            name = d['name'].split('\n')[-2]
+            name = d['name'].split('\n')[-1]
             address = d['address'].replace('\n', '').strip()
             des = d['des'].strip().replace('\n', '')
             star = d['star']

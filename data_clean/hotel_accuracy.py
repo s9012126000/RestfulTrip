@@ -67,3 +67,4 @@ def store_end_time_dashboard():
 if __name__ == '__main__':
     count_repeat_hotel()
     store_end_time_dashboard()
+    os._exit(0)

@@ -1,11 +1,10 @@
-import time
-
 from config.crawler_config import *
 from config.mysql_config import *
 from pprint import pprint
 import datetime
 import threading
 import queue
+import time
 import re
 
 
@@ -15,7 +14,7 @@ def replace_all(text, dt):
     return text
 
 
-def get_thirty_dates():
+def get_dates():
     date_ls = []
     for d in range(14):
         date = (datetime.datetime.now().date() + datetime.timedelta(days=d))
@@ -39,12 +38,10 @@ class Worker(threading.Thread):
                 print(f"insert {jb['hotel_id']} successfully")
             else:
                 print(f"{jb['hotel_id']} is empty")
-            # if empty['date']:
-            #     empty_to_sql(empty, self.db)
             print(f"hotel {jb['hotel_id']}: done")
 
     def get_hotel_price(self, link):
-        date_ls = get_thirty_dates()
+        date_ls = get_dates()
         uid = link['id']
         url = link['url']
         price_ls = []
@@ -57,7 +54,6 @@ class Worker(threading.Thread):
                 'chkout=2022-10-02': f'chkout={checkout}',
             }
             url_new = replace_all(url, replaces)
-            # driver.set_page_load_timeout(10)
             try:
                 self.driver.get(url_new)
                 self.driver.execute_script("window.scrollTo(0, 800)")
@@ -96,26 +92,20 @@ class Worker(threading.Thread):
                 price_ls.extend(price_pack)
             except TimeoutException:
                 print(f"{uid} is empty at {date}")
-        #         empty_date.append(str(date))
-        # empty_pack = {
-        #     'date': empty_date,
-        #     'resource_id': uid
-        # }
-        # pprint(empty_pack)
         pprint(price_ls)
         return price_ls
 
 
 if __name__ == '__main__':
-    MyDb = pool.get_conn()
+    mysql_db = pool.get_conn()
     START_TIME = datetime.datetime.now()
     print(f"hotels started at {START_TIME.strftime('%Y-%m-%d %H:%M:%S')}")
-    MyDb.ping(reconnect=True)
-    cursor = MyDb.cursor()
+    mysql_db.ping(reconnect=True)
+    cursor = mysql_db.cursor()
     cursor.execute('SELECT id, url, hotel_id  FROM resources WHERE resource = 1 ORDER BY hotel_id')
     urls = cursor.fetchall()
-    MyDb.commit()
-    pool.release(MyDb)
+    mysql_db.commit()
+    pool.release(mysql_db)
 
     job_queue = queue.Queue()
     for job in urls:
@@ -124,12 +114,12 @@ if __name__ == '__main__':
     workers = []
     worker_count = 4
     for i in range(worker_count):
-        MyDb = pool.get_conn()
+        mysql_db = pool.get_conn()
         num = i + 1
         driver = webdriver.Chrome(ChromeDriverManager(version='104.0.5112.20').install(), options=options)
         driver.execute_cdp_cmd("Network.setCacheDisabled", {"cacheDisabled": True})
         driver.delete_all_cookies()
-        worker = Worker(num, driver, MyDb)
+        worker = Worker(num, driver, mysql_db)
         workers.append(worker)
 
     for worker in workers:

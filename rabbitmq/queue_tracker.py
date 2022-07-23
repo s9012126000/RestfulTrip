@@ -1,4 +1,4 @@
-from mysql_config import *
+from config.mysql_config import *
 import datetime
 import schedule
 import time
