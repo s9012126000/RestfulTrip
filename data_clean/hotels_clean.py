@@ -30,50 +30,50 @@ class Hotel_manager(ABC):
     def compare(self, cleaned, df):
         hotels = cleaned
         exist_df = df
-        exist = exist_df[['name', 'id']]
-        exist_dt = {
-            self.normalize(x[1]['name']).lower(): x[1]['id'] for x in exist.iterrows()
+        exist = exist_df[["name", "id"]]
+        exist_dic = {
+            self.normalize(x[1]["name"]).lower(): x[1]["id"] for x in exist.iterrows()
         }
         update_ls = []
         insert_ls = []
         for hotel in hotels:
-            name = self.normalize(hotel['name']).lower()
-            if name in exist_dt:
-                e_id = exist_dt[name]
+            name = self.normalize(hotel["name"]).lower()
+            if name in exist_dic:
+                e_id = exist_dic[name]
                 update_ls.append((hotel, e_id))
                 hotels.remove(hotel)
-                exist_dt.pop(name)
+                exist_dic.pop(name)
         for hotel in hotels:
-            name = self.normalize(hotel['name']).lower()
+            name = self.normalize(hotel["name"]).lower()
             target_id = None
             r = 0
-            for e_name in exist_dt:
+            for e_name in exist_dic:
                 rate = SequenceMatcher(None, name, e_name).quick_ratio()
                 if rate > r:
                     r = rate
-                    target_id = exist_dt[e_name]
+                    target_id = exist_dic[e_name]
             if r > 0.8:
-                exist_row = exist_df[exist_df['id'] == target_id]
-                address = self.normalize(hotel['address'])
-                e_address = self.normalize(exist_row['address'].values[0])
+                exist_row = exist_df[exist_df["id"] == target_id]
+                address = self.normalize(hotel["address"])
+                e_address = self.normalize(exist_row["address"].values[0])
                 address_rate = SequenceMatcher(None, address, e_address).quick_ratio()
                 if address_rate > 0.2:
                     update_ls.append((hotel, target_id))
                     print(target_id)
                     print(name)
-                    print(exist_row['name'].values[0], '\n')
+                    print(exist_row["name"].values[0], "\n")
                 else:
                     insert_ls.append(hotel)
             elif 0.5 < r <= 0.8:
-                exist_row = exist_df[exist_df['id'] == target_id]
-                address = self.normalize(hotel['address'])
-                e_address = self.normalize(exist_row['address'].values[0])
+                exist_row = exist_df[exist_df["id"] == target_id]
+                address = self.normalize(hotel["address"])
+                e_address = self.normalize(exist_row["address"].values[0])
                 address_rate = SequenceMatcher(None, address, e_address).quick_ratio()
                 if address_rate > 0.6:
                     update_ls.append((hotel, target_id))
                     print(target_id)
                     print(name)
-                    print(exist_row['name'].values[0], '\n')
+                    print(exist_row["name"].values[0], "\n")
                 else:
                     insert_ls.append(hotel)
             else:
@@ -90,7 +90,16 @@ class Hotel_manager(ABC):
 
     @staticmethod
     def normalize(text):
-        replaces = {' ': '', '-': '', '(': '', ')': '', ',': '', '.': '', '．': '', '‧': ''}
+        replaces = {
+            " ": "",
+            "-": "",
+            "(": "",
+            ")": "",
+            ",": "",
+            ".": "",
+            "．": "",
+            "‧": "",
+        }
         for i, j in replaces.items():
             text = text.replace(i, j).lower()
         return text
@@ -102,50 +111,50 @@ class Hotel_manager(ABC):
         if update_ls:
             for up in update_ls:
                 hotel = up[0]
-                exist_row = exist_df[exist_df['id'] == up[1]]
-                if exist_row['address'].values[0] == 'non-provided':
-                    exist_df.loc[exist_df.id == up[1], 'address'] = hotel['address']
-                if len(hotel['des']) > len(exist_row['des']):
-                    exist_df.loc[exist_df.id == up[1], 'des'] = hotel['des']
-                if hotel['star'] != 0 and exist_row['star'].values[0] == 0.0:
-                    exist_df.loc[exist_df.id == up[1], 'star'] = float(hotel['star'])
+                exist_row = exist_df[exist_df["id"] == up[1]]
+                if exist_row["address"].values[0] == "non-provided":
+                    exist_df.loc[exist_df.id == up[1], "address"] = hotel["address"]
+                if len(hotel["des"]) > len(exist_row["des"]):
+                    exist_df.loc[exist_df.id == up[1], "des"] = hotel["des"]
+                if hotel["star"] != 0 and exist_row["star"].values[0] == 0.0:
+                    exist_df.loc[exist_df.id == up[1], "star"] = float(hotel["star"])
                 img_pack = {
-                    'hotel_id': up[1],
-                    'resource': hotel['resource'],
-                    'image': hotel['img']
+                    "hotel_id": up[1],
+                    "resource": hotel["resource"],
+                    "image": hotel["img"],
                 }
                 resource_pack = {
-                    'resource': hotel['resource'],
-                    'url': hotel['url'],
-                    'rating': hotel['rating'],
-                    'hotel_id': up[1]
+                    "resource": hotel["resource"],
+                    "url": hotel["url"],
+                    "rating": hotel["rating"],
+                    "hotel_id": up[1],
                 }
                 img_ls.append(img_pack)
                 res_ls.append(resource_pack)
 
-        hotel_id = exist_df.sort_values(['id'])['id'].iloc[-1]
+        hotel_id = exist_df.sort_values(["id"])["id"].iloc[-1]
 
         if insert_ls:
             hotels = []
             for new_hotel in insert_ls:
                 hotel_id += 1
                 hotel_pack = {
-                    'id': hotel_id,
-                    'name': new_hotel['name'],
-                    'address': new_hotel['address'],
-                    'des': new_hotel['des'],
-                    'star': new_hotel['star']
+                    "id": hotel_id,
+                    "name": new_hotel["name"],
+                    "address": new_hotel["address"],
+                    "des": new_hotel["des"],
+                    "star": new_hotel["star"],
                 }
                 img_pack = {
-                    'hotel_id': hotel_id,
-                    'resource': new_hotel['resource'],
-                    'image': new_hotel['img'],
+                    "hotel_id": hotel_id,
+                    "resource": new_hotel["resource"],
+                    "image": new_hotel["img"],
                 }
                 resource_pack = {
-                    'resource': new_hotel['resource'],
-                    'url': new_hotel['url'],
-                    'rating': new_hotel['rating'],
-                    'hotel_id': hotel_id
+                    "resource": new_hotel["resource"],
+                    "url": new_hotel["url"],
+                    "rating": new_hotel["rating"],
+                    "hotel_id": hotel_id,
                 }
                 hotels.append(hotel_pack)
                 img_ls.append(img_pack)
@@ -160,7 +169,7 @@ class Hotel_manager(ABC):
     def get_current_sql():
         mysql_db.ping(reconnect=True)
         cursor = mysql_db.cursor()
-        cursor.execute('SELECT * FROM hotels')
+        cursor.execute("SELECT * FROM hotels")
         hotels_ls = cursor.fetchall()
         mysql_db.commit()
         df = pd.DataFrame(hotels_ls)
@@ -175,22 +184,30 @@ class Hotel_manager(ABC):
         if not last_id:
             hotel_id = 0
         else:
-            hotel_id = last_id['id']
+            hotel_id = last_id["id"]
         hotel_vals = []
         res_vals = []
         img_vals = []
         for hotel in self.cleaned_hotel:
             hotel_id += 1
-            hotel_val = (hotel_id, hotel['name'], hotel['address'], hotel['des'], hotel['star'])
-            res_val = (hotel['resource'], hotel['url'], hotel['rating'], hotel_id)
-            img_val = (hotel['img'], hotel['resource'], hotel_id)
+            hotel_val = (
+                hotel_id,
+                hotel["name"],
+                hotel["address"],
+                hotel["des"],
+                hotel["star"],
+            )
+            res_val = (hotel["resource"], hotel["url"], hotel["rating"], hotel_id)
+            img_val = (hotel["img"], hotel["resource"], hotel_id)
             hotel_vals.append(hotel_val)
             res_vals.append(res_val)
             img_vals.append(img_val)
-        h_place = ', '.join(['%s'] * len(hotel_vals[0]))
-        r_place = ', '.join(['%s'] * len(res_vals[0]))
-        i_place = ', '.join(['%s'] * len(img_vals[0]))
-        hotel_sql = f"INSERT INTO hotels (id, name, address, des, star) VALUES ({h_place})"
+        h_place = ", ".join(["%s"] * len(hotel_vals[0]))
+        r_place = ", ".join(["%s"] * len(res_vals[0]))
+        i_place = ", ".join(["%s"] * len(img_vals[0]))
+        hotel_sql = (
+            f"INSERT INTO hotels (id, name, address, des, star) VALUES ({h_place})"
+        )
         res_sql = f"INSERT INTO resources (resource, url, rating, hotel_id) VALUES ({r_place})"
         img_sql = f"INSERT INTO images (image, resource, hotel_id) VALUES ({i_place})"
         cursor.executemany(hotel_sql, hotel_vals)
@@ -208,8 +225,8 @@ class Hotel_manager(ABC):
 class Hotels(Hotel_manager, ABC):
     @property
     def raw(self):
-        col = client['personal_project']['hotels']
-        query = col.find({}, {'_id': 0})
+        col = client["personal_project"]["hotels"]
+        query = col.find({}, {"_id": 0})
         hotels = [x for x in query]
         return hotels
 
@@ -221,53 +238,49 @@ class Hotels(Hotel_manager, ABC):
     def store_hotel_dashboard(self):
         cursor = mysql_db.cursor()
         cursor.execute("SELECT * FROM dash_time ORDER BY date DESC")
-        date = cursor.fetchone()['date']
+        date = cursor.fetchone()["date"]
         mysql_db.commit()
-        dash_hotel = {
-            'date': date,
-            'resource': 1,
-            'tol': len(self.raw)
-        }
-        dic_to_sql('dash_hotels', dash_hotel, mysql_db)
+        dash_hotel = {"date": date, "resource": 1, "tol": len(self.raw)}
+        dic_to_sql("dash_hotels", dash_hotel, mysql_db)
 
     def clean_pipe(self):
         check_ls = []
         hotels = self.raw.copy()
         for d in self.raw:
-            if d['detail'] in check_ls:
+            if d["detail"] in check_ls:
                 hotels.remove(d)
             else:
-                check_ls.append(d['detail'])
+                check_ls.append(d["detail"])
         hotel_ls = []
         name_ls = []
         for d in hotels:
-            name = d['detail'].split('\n')[0]
-            if name in ['VIP Access', '整棟度假屋', '整間出租公寓', '整間木屋']:
+            name = d["detail"].split("\n")[0]
+            if name in ["VIP Access", "整棟度假屋", "整間出租公寓", "整間木屋"]:
                 part = 1
             else:
                 part = 0
-            name = d['detail'].split('\n')[part]
-            address = d['address']
+            name = d["detail"].split("\n")[part]
+            address = d["address"]
             if name in name_ls:
-                name = name + '-' + address.split(' ')[0]
+                name = name + "-" + address.split(" ")[0]
             name_ls.append(name)
-            des = d['detail'].split('\n')[-1]
+            des = d["detail"].split("\n")[-1]
             try:
-                star = float(re.search(r"\d\.\d", d['detail']).group())
+                star = float(re.search(r"\d\.\d", d["detail"]).group())
             except AttributeError:
                 star = 0.0
-            img = d['img']
-            url = d['url']
-            rating = '，來自 '.join(d['rating'].split('\n')[0:2])
+            img = d["img"]
+            url = d["url"]
+            rating = "，來自 ".join(d["rating"].split("\n")[0:2])
             pack = {
-                'name': name,
-                'address': address,
-                'des': des,
-                'resource': 1,
-                'star': star,
-                'url': url,
-                'rating': rating,
-                'img': img
+                "name": name,
+                "address": address,
+                "des": des,
+                "resource": 1,
+                "star": star,
+                "url": url,
+                "rating": rating,
+                "img": img,
             }
             hotel_ls.append(pack)
         return hotel_ls
@@ -276,8 +289,8 @@ class Hotels(Hotel_manager, ABC):
 class Booking(Hotel_manager, ABC):
     @property
     def raw(self):
-        col = client['personal_project']['booking']
-        query = col.find({}, {'_id': 0})
+        col = client["personal_project"]["booking"]
+        query = col.find({}, {"_id": 0})
         hotels = [x for x in query]
         return hotels
 
@@ -289,41 +302,37 @@ class Booking(Hotel_manager, ABC):
     def store_hotel_dashboard(self):
         cursor = mysql_db.cursor()
         cursor.execute("SELECT * FROM dash_time ORDER BY date DESC")
-        date = cursor.fetchone()['date']
+        date = cursor.fetchone()["date"]
         mysql_db.commit()
-        dash_hotel = {
-            'date': date,
-            'resource': 2,
-            'tol': len(self.raw)
-        }
-        dic_to_sql('dash_hotels', dash_hotel, mysql_db)
+        dash_hotel = {"date": date, "resource": 2, "tol": len(self.raw)}
+        dic_to_sql("dash_hotels", dash_hotel, mysql_db)
 
     def clean_pipe(self):
         check_ls = []
         hotels = self.raw.copy()
         for d in self.raw:
-            if d['name'] in check_ls:
+            if d["name"] in check_ls:
                 hotels.remove(d)
             else:
-                check_ls.append(d['name'])
+                check_ls.append(d["name"])
         hotel_ls = []
         for d in hotels:
-            name = d['name'].split('\n')[-1]
-            address = d['address'].replace('\n', '').strip()
-            des = d['des'].strip().replace('\n', '')
-            star = d['star']
-            img = d['img']
-            url = d['url']
-            rating = d['rating']
+            name = d["name"].split("\n")[-1]
+            address = d["address"].replace("\n", "").strip()
+            des = d["des"].strip().replace("\n", "")
+            star = d["star"]
+            img = d["img"]
+            url = d["url"]
+            rating = d["rating"]
             pack = {
-                'name': name,
-                'address': address,
-                'des': des,
-                'resource': 2,
-                'star': star,
-                'url': url,
-                'rating': rating,
-                'img': img
+                "name": name,
+                "address": address,
+                "des": des,
+                "resource": 2,
+                "star": star,
+                "url": url,
+                "rating": rating,
+                "img": img,
             }
             hotel_ls.append(pack)
         return hotel_ls
@@ -332,8 +341,8 @@ class Booking(Hotel_manager, ABC):
 class Agoda(Hotel_manager, ABC):
     @property
     def raw(self):
-        col = client['personal_project']['agoda']
-        query = col.find({}, {'_id': 0})
+        col = client["personal_project"]["agoda"]
+        query = col.find({}, {"_id": 0})
         hotels = [x for x in query]
         return hotels
 
@@ -345,28 +354,24 @@ class Agoda(Hotel_manager, ABC):
     def store_hotel_dashboard(self):
         cursor = mysql_db.cursor()
         cursor.execute("SELECT * FROM dash_time ORDER BY date DESC")
-        date = cursor.fetchone()['date']
+        date = cursor.fetchone()["date"]
         mysql_db.commit()
-        dash_hotel = {
-            'date': date,
-            'resource': 3,
-            'tol': len(self.raw)
-        }
-        dic_to_sql('dash_hotels', dash_hotel, mysql_db)
+        dash_hotel = {"date": date, "resource": 3, "tol": len(self.raw)}
+        dic_to_sql("dash_hotels", dash_hotel, mysql_db)
 
     def clean_pipe(self):
         check_ls = []
         hotels = self.raw.copy()
         for d in self.raw:
-            if d['name'] in check_ls:
+            if d["name"] in check_ls:
                 hotels.remove(d)
             else:
-                check_ls.append(d['name'])
+                check_ls.append(d["name"])
         hotel_ls = []
         for d in hotels:
-            name = d['name']
-            name = name.split('(')[0].split('（')[0]
-            address = self.normalize(d['address'])
+            name = d["name"]
+            name = name.split("(")[0].split("（")[0]
+            address = self.normalize(d["address"])
             try:
                 pat = re.search(r"[a-z\d’~']+", address)
                 start = pat.end()
@@ -375,33 +380,33 @@ class Agoda(Hotel_manager, ABC):
                     address = address[start:]
             except AttributeError:
                 pass
-            des = d['des']
-            star = d['star']
-            if 'pink' in star:
+            des = d["des"]
+            star = d["star"]
+            if "pink" in star:
                 star = 0.0
-            elif 'orange' in star:
+            elif "orange" in star:
                 try:
-                    star = float('.'.join(re.search(r"star-(\d+)", star).group(1)))
+                    star = float(".".join(re.search(r"star-(\d+)", star).group(1)))
                 except AttributeError:
                     star = 0.0
-            img = d['img']
-            url = d['url']
-            rating = d['rating'].replace('\n', '，')
+            img = d["img"]
+            url = d["url"]
+            rating = d["rating"].replace("\n", "，")
             pack = {
-                'name': name,
-                'address': address,
-                'des': des,
-                'resource': 3,
-                'star': star,
-                'url': url,
-                'rating': rating,
-                'img': img
+                "name": name,
+                "address": address,
+                "des": des,
+                "resource": 3,
+                "star": star,
+                "url": url,
+                "rating": rating,
+                "img": img,
             }
             hotel_ls.append(pack)
         return hotel_ls
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     mysql_db = pool.get_conn()
     hotel = Hotels()
     booking = Booking()
@@ -424,7 +429,7 @@ if __name__ == '__main__':
             current_hotel = data_pack[0]
 
     hotels_to_sql(current_hotel, mysql_db)
-    ls_to_sql('images', image_ls, mysql_db)
-    ls_to_sql('resources', resource_ls, mysql_db)
+    ls_to_sql("images", image_ls, mysql_db)
+    ls_to_sql("resources", resource_ls, mysql_db)
     pool.release(mysql_db)
     os._exit(0)
