@@ -48,8 +48,6 @@ def get_hotel_image(hid):
 def get_hotel_price(checkin, checkout, hid, person):
     mysql_db.ping(reconnect=True)
     cursor = mysql_db.cursor()
-    checkout = datetime.datetime.strptime(checkout, "%Y-%m-%d")
-    checkout = (checkout - datetime.timedelta(days=1)).date().isoformat()
     if int(person) < 5:
         person_sql = f"between {person} and {int(person) + 1}"
     elif 5 <= int(person) <= 7:
