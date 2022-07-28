@@ -3,6 +3,7 @@ import datetime
 import schedule
 import time
 import pika
+import os
 
 mysql_db = pool.get_conn()
 credentials = pika.credentials.PlainCredentials(
@@ -97,8 +98,10 @@ def check_queue_size():
         store_end_time_dashboard(3)
 
     if hotel_size == 0 and booking_size == 0 and agoda_size == 0:
+        time.sleep(120)
         for i in range(3):
             store_price_dashboard(i + 1)
+        os.system('bash task_management/stop.sh')
         os._exit(0)
 
 
