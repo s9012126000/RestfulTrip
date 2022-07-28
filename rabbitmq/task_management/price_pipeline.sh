@@ -4,7 +4,7 @@ sudo docker start myrabbitmq
 
 source /home/s9012126000_gmail_com/miniconda3/etc/profile.d/conda.sh
 
-cd personal_project/rabbitmq/ && conda activate personal
+cd ../ && conda activate personal
 python3 send_msg.py
 
 gcloud compute instances start h1 --zone=asia-east1-b &
