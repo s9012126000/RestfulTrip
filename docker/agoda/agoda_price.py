@@ -31,7 +31,7 @@ channel.exchange_declare(
 )
 channel.queue_declare(queue="agoda", durable=True)
 channel.queue_bind(queue="agoda", exchange="test_exchange", routing_key="que")
-channel.basic_qos(prefetch_count=4)
+channel.basic_qos(prefetch_count=1)
 
 
 def replace_all(text, dic):
@@ -57,9 +57,10 @@ def get_agoda_price(link, driver):
     date_ls = get_dates()
     uid = link["id"]
     url = link["url"]
+    date_stmt = re.search(r'checkIn=[0-9-]+', url).group()
     price_ls = []
     for date in date_ls:
-        replaces = {"checkIn=2022-06-28": f"checkIn={date}"}
+        replaces = {date_stmt: f"checkIn={date}"}
         url_new = replace_all(url, replaces)
 
         def fetching():
