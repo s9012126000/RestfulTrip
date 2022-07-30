@@ -31,7 +31,7 @@ channel.exchange_declare(
 )
 channel.queue_declare(queue="agoda", durable=True)
 channel.queue_bind(queue="agoda", exchange="test_exchange", routing_key="que")
-channel.basic_qos(prefetch_count=1)
+channel.basic_qos(prefetch_count=4)
 
 
 def replace_all(text, dic):
