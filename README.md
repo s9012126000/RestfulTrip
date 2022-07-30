@@ -73,7 +73,7 @@ crawler pods on each worker by Docker images and managed by shell script to enha
 
 
 ## MySQL Schema
-![](https://i.imgur.com/693ZEHG.png)
+<img src="https://i.imgur.com/693ZEHG.png" alt="drawing" width="350"/>
 
 ## Features
 
@@ -82,7 +82,10 @@ crawler pods on each worker by Docker images and managed by shell script to enha
 
 ### 2. Searching on location or hotel name
 
-### 3. directly link to the hotel
+https://user-images.githubusercontent.com/88102956/181933862-94db3b65-1dec-489d-8727-e81ea01ed366.mp4
+
+
+### 3. Directly link to the hotel
 
 
 
