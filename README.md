@@ -8,7 +8,7 @@
 ## Table of Contents
 * [Data Pipeline](#Data-Pipeline)
 * [MySQL Schema](#MySQL-Schema)
-* [Features](#Feature)
+* [Features](#Features)
 * [Technologies](#Technologies)
 * [Notification](#Notification)
 
