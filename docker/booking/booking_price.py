@@ -42,7 +42,7 @@ def replace_all(text, dic):
 
 def get_dates():
     date_ls = []
-    for d in range(14):
+    for d in range(2):
         date = datetime.datetime.now().date() + datetime.timedelta(days=d)
         date_ls.append(date)
     return date_ls
@@ -53,9 +53,37 @@ def ack_message(channel, delivery_tag):
         channel.basic_ack(delivery_tag)
 
 
+def fetching(url, price_ls, date, uid):
+    headers["User-Agent"] = UserAgent().random
+    hotel_req = requests.get(url, headers=headers, allow_redirects=False)
+    hotel_soup = BeautifulSoup(hotel_req.text, "html.parser")
+    room = hotel_soup.find(id="hprt-table").findAll(
+        "span", attrs={"class": "bui-u-sr-only"}
+    )
+    room = [x.text.replace(",", "") for x in room]
+    room = "".join(room)
+    price = [x for x in re.findall(r"目前價格\nTWD\xa0\d+|房價\nTWD\xa0\d+", room)]
+    price = [int(re.search(r"\xa0(\d+)", x).group(1)) for x in price]
+    room_type = re.findall(r"—\d|最多人數: \d", room)
+    room_type = [int(re.search(r"\d", x).group()) for x in room_type]
+    price_dict = {}
+    for i in range(len(room_type)):
+        try:
+            if price_dict[room_type[i]] > price[i]:
+                price_dict[room_type[i]] = price[i]
+        except KeyError:
+            price_dict[room_type[i]] = price[i]
+    price_pack = [
+        {"date": date, "price": price, "resource_id": uid, "person": person}
+        for person, price in price_dict.items()
+    ]
+    price_ls.extend(price_pack)
+
+
 def get_booking_price(link):
     date_ls = get_dates()
-    uid = link["id"]
+    resource_id = link["id"]
+    hotel_id = link["hotel_id"]
     url = link["url"]
     price_ls = []
     for date in date_ls:
@@ -66,42 +94,15 @@ def get_booking_price(link):
             "checkout=2022-06-19": f"checkout={checkout}",
         }
         url_new = replace_all(url, replaces)
-
-        def fetching():
-            headers["User-Agent"] = UserAgent().random
-            hotel_req = requests.get(url_new, headers=headers, allow_redirects=False)
-            hotel_soup = BeautifulSoup(hotel_req.text, "html.parser")
-            room = hotel_soup.find(id="hprt-table").findAll(
-                "span", attrs={"class": "bui-u-sr-only"}
-            )
-            room = [x.text.replace(",", "") for x in room]
-            room = "".join(room)
-            price = [x for x in re.findall(r"目前價格\nTWD\xa0\d+|房價\nTWD\xa0\d+", room)]
-            price = [int(re.search(r"\xa0(\d+)", x).group(1)) for x in price]
-            room_type = re.findall(r"—\d|最多人數: \d", room)
-            room_type = [int(re.search(r"\d", x).group()) for x in room_type]
-            price_dict = {}
-            for i in range(len(room_type)):
-                try:
-                    if price_dict[room_type[i]] > price[i]:
-                        price_dict[room_type[i]] = price[i]
-                except KeyError:
-                    price_dict[room_type[i]] = price[i]
-            price_pack = [
-                {"date": date, "price": price, "resource_id": uid, "person": person}
-                for person, price in price_dict.items()
-            ]
-            price_ls.extend(price_pack)
-
         try:
-            fetching()
-            print(f"receive {uid} price at {date}")
+            fetching(url_new, price_ls, date, resource_id)
+            print(f"receive {hotel_id} price at {date}")
         except AttributeError:
             try:
-                fetching()
-                print(f"receive {uid} price at {date}")
+                fetching(url_new, price_ls, date, resource_id)
+                print(f"receive {hotel_id} price at {date}")
             except AttributeError:
-                print(f"{uid} is empty at {date}")
+                print(f"{hotel_id} is empty at {date}")
     return price_ls
 
 

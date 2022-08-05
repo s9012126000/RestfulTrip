@@ -34,6 +34,11 @@ channel.queue_bind(queue="agoda", exchange="test_exchange", routing_key="que")
 channel.basic_qos(prefetch_count=4)
 
 
+def ack_message(channel, delivery_tag):
+    if channel.is_open:
+        channel.basic_ack(delivery_tag)
+
+
 def replace_all(text, dic):
     for i, j in dic.items():
         text = text.replace(i, j)
@@ -42,78 +47,66 @@ def replace_all(text, dic):
 
 def get_dates():
     date_ls = []
-    for d in range(14):
+    for d in range(2):
         date = datetime.datetime.now().date() + datetime.timedelta(days=d)
         date_ls.append(date)
     return date_ls
 
 
-def ack_message(channel, delivery_tag):
-    if channel.is_open:
-        channel.basic_ack(delivery_tag)
+def fetch_data(driver, url, price_ls, date, uid):
+    driver.get(url)
+    time.sleep(0.5)
+    wait = WebDriverWait(driver, 1)
+    price = wait.until(ec.presence_of_all_elements_located((By.XPATH, "//strong[@data-ppapi='room-price']")))
+    price = [int(x.text.replace(",", "")) for x in price]
+    if 0 in price:
+        driver.refresh()
+        time.sleep(1)
+        price = wait.until(ec.presence_of_all_elements_located((By.XPATH, "//strong[@data-ppapi='room-price']")))
+        price = [int(x.text.replace(",", "")) for x in price]
+    room = wait.until(
+        ec.presence_of_all_elements_located((By.XPATH, "//div[@data-ppapi='max-occupancy']"))
+    )
+    room = [x.get_attribute("innerHTML") for x in room]
+    room_ls = []
+    for r in room:
+        try:
+            room_ls.append(re.search(r"occupancy\">(\d)</span>", r).group(1))
+        except AttributeError:
+            room_ls.append(len(re.findall(r"adult", r)))
+    price_dict = {}
+    for i in range(len(room_ls)):
+        try:
+            if price_dict[room_ls[i]] > price[i]:
+                price_dict[room_ls[i]] = price[i]
+        except KeyError:
+            price_dict[room_ls[i]] = price[i]
+    price_pack = [
+        {"date": date, "price": price, "resource_id": uid, "person": person}
+        for person, price in price_dict.items()
+    ]
+    price_ls.extend(price_pack)
 
 
 def get_agoda_price(link, driver):
     date_ls = get_dates()
-    uid = link["id"]
+    resource_id = link["id"]
+    hotel_id = link["hotel_id"]
     url = link["url"]
     date_stmt = re.search(r'checkIn=[0-9-]+', url).group()
     price_ls = []
     for date in date_ls:
         replaces = {date_stmt: f"checkIn={date}"}
         url_new = replace_all(url, replaces)
-
-        def fetching():
-            driver.get(url_new)
-            time.sleep(0.5)
-            wait = WebDriverWait(driver, 1)
-            price = wait.until(
-                ec.presence_of_all_elements_located(
-                    (By.XPATH, "//strong[@data-ppapi='room-price']")
-                )
-            )
-            price = [int(x.text.replace(",", "")) for x in price]
-            if 0 in price:
-                driver.refresh()
-                time.sleep(1)
-                price = wait.until(
-                    ec.presence_of_all_elements_located(
-                        (By.XPATH, "//strong[@data-ppapi='room-price']")
-                    )
-                )
-                price = [int(x.text.replace(",", "")) for x in price]
-            room = wait.until(
-                ec.presence_of_all_elements_located(
-                    (By.XPATH, "//div[@data-ppapi='max-occupancy']")
-                )
-            )
-            room = [x.get_attribute("innerHTML") for x in room]
-            room_ls = []
-            for r in room:
-                try:
-                    room_ls.append(re.search(r"occupancy\">(\d)</span>", r).group(1))
-                except AttributeError:
-                    room_ls.append(len(re.findall(r"adult", r)))
-            price_dict = {}
-            for i in range(len(room_ls)):
-                try:
-                    if price_dict[room_ls[i]] > price[i]:
-                        price_dict[room_ls[i]] = price[i]
-                except KeyError:
-                    price_dict[room_ls[i]] = price[i]
-            price_pack = [
-                {"date": date, "price": price, "resource_id": uid, "person": person}
-                for person, price in price_dict.items()
-            ]
-            price_ls.extend(price_pack)
-
         try:
-            fetching()
-            print(f"receive {uid} price at {date}")
+            fetch_data(driver, url_new, price_ls, date, resource_id)
+            print(f"receive {hotel_id} price at {date}")
         except TimeoutException:
-            print(f"{uid} is empty at {date}")
+            print(f"{hotel_id} is empty at {date}")
         except StaleElementReferenceException:
-            print(f"{uid} is empty at {date}")
+            message = f'[{datetime.datetime.now().isoformat()}][StaleElementReferenceException] agoda fetch_price failed\n' \
+                      f'[failed url] {url_new}'
+            print(message)
     return price_ls
 
 
