@@ -15,7 +15,8 @@ def get_divisions():
     return divs
 
 
-divisions = get_divisions()
-divisions = [div.replace("臺", "台") if "臺" in div else div for div in divisions]
-with open("jsons/divisions.json", "w") as f:
-    json.dump(list(divisions), f)
+if __name__ == '__main__':
+    divisions = get_divisions()
+    divisions = [div.replace("臺", "台") if "臺" in div else div for div in divisions]
+    with open("jsons/divisions.json", "w") as f:
+        json.dump(list(divisions), f)

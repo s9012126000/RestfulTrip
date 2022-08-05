@@ -1,5 +1,6 @@
 from config.mysql_config import *
 import datetime
+import re
 
 mysql_db = pool.get_conn()
 
@@ -48,8 +49,6 @@ def get_hotel_image(hid):
 def get_hotel_price(checkin, checkout, hid, person):
     mysql_db.ping(reconnect=True)
     cursor = mysql_db.cursor()
-    checkout = datetime.datetime.strptime(checkout, "%Y-%m-%d")
-    checkout = (checkout - datetime.timedelta(days=1)).date().isoformat()
     if int(person) < 5:
         person_sql = f"between {person} and {int(person) + 1}"
     elif 5 <= int(person) <= 7:
@@ -90,9 +89,10 @@ def get_hotel_price(checkin, checkout, hid, person):
                 datetime.datetime.strptime(checkout, "%Y-%m-%d").date()
                 - datetime.datetime.strptime(checkin, "%Y-%m-%d").date()
             ).days
+            date_stmt = re.search(r'checkIn=[0-9-]+', price["url"]).group()
             price["url"] = (
                 price["url"]
-                .replace("checkIn=2022-06-28", f"checkIn={checkin}")
+                .replace(date_stmt, f"checkIn={checkin}")
                 .replace("los=1", f"los={day_delta}")
             )
         try:

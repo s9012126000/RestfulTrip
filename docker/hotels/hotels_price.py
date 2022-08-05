@@ -42,15 +42,51 @@ def replace_all(text, dic):
 
 def get_dates():
     date_ls = []
-    for d in range(14):
+    for d in range(2):
         date = datetime.datetime.now().date() + datetime.timedelta(days=d)
         date_ls.append(date)
     return date_ls
 
 
+def fetch_data(driver, url, price_ls, date, uid):
+    driver.get(url)
+    driver.execute_script("window.scrollTo(0, 800)")
+    time.sleep(0.5)
+    wait = WebDriverWait(driver, 1)
+    cards = wait.until(ec.presence_of_element_located((By.ID, "Offers")))
+    wait.until(ec.presence_of_all_elements_located((By.TAG_NAME, "ul")))
+    try:
+        empty = driver.find_element(By.XPATH, "//div[@data-stid='error-messages']").text
+        print(empty)
+        raise TimeoutException
+    except NoSuchElementException:
+        pass
+    wait.until(
+        ec.presence_of_all_elements_located((By.XPATH, "//div[@data-stid='price-summary']"))
+    )
+    room = cards.find_elements(By.TAG_NAME, "ul")
+    room = [int(re.search(r"最多可入住 (\d+) 人", x.text).group(1)) for x in room]
+    price = cards.find_elements(By.XPATH, "//div[@data-stid='price-summary']")
+    price = [int(re.search(r"\d+", (x.text.replace(",", ""))).group()) for x in price]
+    room = room[0: len(price)]
+    price_dict = {}
+    for i in range(len(room)):
+        try:
+            if price_dict[room[i]] > price[i]:
+                price_dict[room[i]] = price[i]
+        except KeyError:
+            price_dict[room[i]] = price[i]
+    price_pack = [
+        {"date": date, "price": price, "resource_id": uid, "person": person}
+        for person, price in price_dict.items()
+    ]
+    price_ls.extend(price_pack)
+
+
 def get_hotel_price(link, driver):
     date_ls = get_dates()
-    uid = link["id"]
+    resource_id = link["id"]
+    hotel_id = link["hotel_id"]
     url = link["url"]
     price_ls = []
     for date in date_ls:
@@ -63,48 +99,10 @@ def get_hotel_price(link, driver):
         }
         url_new = replace_all(url, replaces)
         try:
-            driver.get(url_new)
-            driver.execute_script("window.scrollTo(0, 800)")
-            time.sleep(0.5)
-            wait = WebDriverWait(driver, 1)
-            cards = wait.until(ec.presence_of_element_located((By.ID, "Offers")))
-            wait.until(ec.presence_of_all_elements_located((By.TAG_NAME, "ul")))
-            try:
-                empty = driver.find_element(
-                    By.XPATH, "//div[@data-stid='error-messages']"
-                ).text
-                print(empty)
-                raise TimeoutException
-            except NoSuchElementException:
-                pass
-            wait.until(
-                ec.presence_of_all_elements_located(
-                    (By.XPATH, "//div[@data-stid='price-summary']")
-                )
-            )
-            room = cards.find_elements(By.TAG_NAME, "ul")
-            room = [int(re.search(r"最多可入住 (\d+) 人", x.text).group(1)) for x in room]
-
-            price = cards.find_elements(By.XPATH, "//div[@data-stid='price-summary']")
-            price = [
-                int(re.search(r"\d+", (x.text.replace(",", ""))).group()) for x in price
-            ]
-            room = room[0 : len(price)]
-            price_dict = {}
-            for i in range(len(room)):
-                try:
-                    if price_dict[room[i]] > price[i]:
-                        price_dict[room[i]] = price[i]
-                except KeyError:
-                    price_dict[room[i]] = price[i]
-            price_pack = [
-                {"date": date, "price": price, "resource_id": uid, "person": person}
-                for person, price in price_dict.items()
-            ]
-            print(f"receive {uid} price at {date}")
-            price_ls.extend(price_pack)
+            fetch_data(driver, url_new, price_ls, date, resource_id)
+            print(f"receive {hotel_id} price at {date}")
         except TimeoutException:
-            print(f"{uid} is empty at {date}")
+            print(f"{hotel_id} is empty at {date}")
     return price_ls
 
 
