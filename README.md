@@ -87,6 +87,7 @@ https://user-images.githubusercontent.com/88102956/181933862-94db3b65-1dec-489d-
 
 ### 3. Directly link to the hotel
 
+https://user-images.githubusercontent.com/88102956/183031765-150b4ed8-7759-4921-8fd5-d2d7bab937c0.mp4
 
 
 ## Technologies
