@@ -77,7 +77,8 @@ crawler pods on each worker by Docker images and managed by shell script to enha
 
 ## Features
 
-### 1. Dashboard for data pipeline
+### 1. Dashboard for data pipeline monitoring
+#### Link: https://restful-trip.com/admin/dashboard
 ![](https://i.imgur.com/LzhExYg.png)
 
 ### 2. Searching on location or hotel name
