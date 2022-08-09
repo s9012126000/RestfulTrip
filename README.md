@@ -8,7 +8,7 @@
 ## Table of Contents
 * [Data Pipeline](#Data-Pipeline)
 * [MySQL Schema](#MySQL-Schema)
-* [Features](#Feature)
+* [Features](#Features)
 * [Technologies](#Technologies)
 * [Notification](#Notification)
 
@@ -77,7 +77,8 @@ crawler pods on each worker by Docker images and managed by shell script to enha
 
 ## Features
 
-### 1. Dashboard for data pipeline
+### 1. Dashboard for data pipeline monitoring
+#### Link: https://restful-trip.com/admin/dashboard
 ![](https://i.imgur.com/LzhExYg.png)
 
 ### 2. Searching on location or hotel name
@@ -87,6 +88,7 @@ https://user-images.githubusercontent.com/88102956/181933862-94db3b65-1dec-489d-
 
 ### 3. Directly link to the hotel
 
+https://user-images.githubusercontent.com/88102956/183031765-150b4ed8-7759-4921-8fd5-d2d7bab937c0.mp4
 
 
 ## Technologies

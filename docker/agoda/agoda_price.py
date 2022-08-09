@@ -23,14 +23,13 @@ conn_param = pika.ConnectionParameters(
 conn = pika.BlockingConnection(conn_param)
 channel = conn.channel()
 channel.exchange_declare(
-    exchange="test_exchange",
+    exchange="hotel",
     exchange_type="direct",
     passive=False,
     durable=True,
     auto_delete=False,
 )
-channel.queue_declare(queue="agoda", durable=True)
-channel.queue_bind(queue="agoda", exchange="test_exchange", routing_key="que")
+channel.queue_bind(queue="agoda", exchange="hotel", routing_key="agoda")
 channel.basic_qos(prefetch_count=4)
 
 
