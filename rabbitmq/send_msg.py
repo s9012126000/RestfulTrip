@@ -33,10 +33,11 @@ def fetching_hotels(resource):
 
 
 def sending_queue(urls, que):
-    channel.queue_declare(queue=que, durable=True)
+    channel.exchange_declare(exchange='hotel', exchange_type='direct', durable=True)
+    channel.queue_bind(exchange='hotel', queue=que)
     for url in urls:
         msg = json.dumps(url).encode("UTF-8")
-        channel.basic_publish(exchange="", routing_key=que, body=msg)
+        channel.basic_publish(exchange="hotel", routing_key=que, body=msg)
 
 
 if __name__ == "__main__":
